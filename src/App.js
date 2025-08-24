@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronRight, Plus, Minus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6 } from 'lucide-react';
+import { supabase } from './lib/supabase';
 
 const MTGCommanderTracker = () => {
   // Add CSS for life change animation and MTG-style fonts
@@ -229,32 +230,65 @@ const MTGCommanderTracker = () => {
     setCurrentTurn(currentTurn + 1);
   };
 
-  // End the game - THIS IS THE UPDATED VERSION WITH SUPABASE
-  const endGame = async () => {
-    const winner = players.find(p => !p.eliminated);
-    setGameState('finished');
-    
-    // For now, we'll just console.log the data
-    // We'll add Supabase saving in the next step
+  // End the game and save to Supabase
+const endGame = async () => {
+  const winner = players.find(p => !p.eliminated);
+  setGameState('finished');
+  
+  try {
+    // Save game to Supabase
     const gameData = {
-      players: players.map(p => ({
-        name: p.name,
-        commander: p.commander,
-        colors: p.colors,
-        finalLife: p.life,
-        eliminated: p.eliminated,
-        eliminatedTurn: p.eliminatedTurn
-      })),
       winner: winner?.name || 'No winner',
-      totalTurns: currentTurn,
-      duration: elapsedTime,
-      commanderDamage: commanderDamage,
-      timestamp: new Date().toISOString()
+      total_turns: currentTurn,
+      duration_seconds: elapsedTime,
+      commander_damage: commanderDamage
     };
     
-    console.log('Game data to save:', gameData);
-    // TODO: We'll add Supabase saving here in the next step
-  };
+    console.log('Saving game data:', gameData);
+    
+    const { data: game, error: gameError } = await supabase
+      .from('games')
+      .insert([gameData])
+      .select()
+      .single();
+    
+    if (gameError) {
+      console.error('Error saving game:', gameError);
+      throw gameError;
+    }
+    
+    console.log('Game saved with ID:', game.id);
+    
+    // Save all players for this game
+    const playersData = players.map(p => ({
+      game_id: game.id,
+      name: p.name,
+      commander: p.commander,
+      colors: p.colors || [],
+      final_life: p.life,
+      eliminated: p.eliminated,
+      eliminated_turn: p.eliminatedTurn
+    }));
+    
+    console.log('Saving players data:', playersData);
+    
+    const { error: playersError } = await supabase
+      .from('players')
+      .insert(playersData);
+    
+    if (playersError) {
+      console.error('Error saving players:', playersError);
+      throw playersError;
+    }
+    
+    console.log('✅ Game and players saved successfully!');
+    
+  } catch (error) {
+    console.error('❌ Error saving game:', error.message);
+    alert('Game finished, but there was an error saving to database. Check console for details.');
+    // Game still ends even if save fails
+  }
+};
 
   // Reset for new game
   const newGame = (keepPlayers = false) => {
