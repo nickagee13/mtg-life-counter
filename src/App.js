@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronRight, Plus, Minus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
@@ -323,36 +323,6 @@ const endGame = async () => {
     { code: 'R', name: 'Red', color: '#d3202a' },
     { code: 'G', name: 'Green', color: '#00733e' }
   ];
-
-  // Generate gradient based on commander colors
-  const getPlayerGradient = (colors) => {
-    if (!colors || colors.length === 0) {
-      // Default gradient if no colors selected
-      return 'bg-gradient-to-br from-gray-400 to-gray-500';
-    }
-    
-    const colorMap = {
-      'W': { from: '#f0e68c', to: '#fffacd' }, // Gold/Light Yellow
-      'U': { from: '#4682b4', to: '#87ceeb' }, // Steel Blue/Sky Blue
-      'B': { from: '#483d8b', to: '#6a5acd' }, // Dark Slate Blue/Slate Blue
-      'R': { from: '#dc143c', to: '#ff6347' }, // Crimson/Tomato
-      'G': { from: '#228b22', to: '#32cd32' }  // Forest Green/Lime Green
-    };
-    
-    if (colors.length === 1) {
-      const color = colorMap[colors[0]];
-      return `bg-gradient-to-br from-[${color.from}] to-[${color.to}]`;
-    } else if (colors.length === 2) {
-      const color1 = colorMap[colors[0]];
-      const color2 = colorMap[colors[1]];
-      return `bg-gradient-to-br from-[${color1.from}] to-[${color2.to}]`;
-    } else {
-      // For 3+ colors, create a more complex gradient
-      const firstColor = colorMap[colors[0]];
-      const lastColor = colorMap[colors[colors.length - 1]];
-      return `bg-gradient-to-br from-[${firstColor.from}] via-purple-500 to-[${lastColor.to}]`;
-    }
-  };
 
   // Get inline style for gradient (since Tailwind can't handle dynamic colors)
   const getPlayerGradientStyle = (colors, isActive = false) => {
