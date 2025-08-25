@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, Plus, Minus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6 } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import './App.css';
 
 const MTGCommanderTracker = () => {
   // Add CSS for life change animation and MTG-style fonts
@@ -324,52 +325,6 @@ const endGame = async () => {
     { code: 'G', name: 'Green', color: '#00733e' }
   ];
 
-  // Get inline style for gradient (since Tailwind can't handle dynamic colors)
-  const getPlayerGradientStyle = (colors, isActive = false) => {
-    if (!colors || colors.length === 0) {
-      return {
-        background: isActive 
-          ? 'linear-gradient(to bottom right, #9333ea, #3b82f6)' 
-          : 'linear-gradient(to bottom right, #9ca3af, #6b7280)'
-      };
-    }
-    
-    const colorMap = {
-      'W': { from: '#f0e68c', to: '#fffacd', active: '#ffd700' },
-      'U': { from: '#4682b4', to: '#87ceeb', active: '#1e90ff' },
-      'B': { from: '#483d8b', to: '#6a5acd', active: '#4b0082' },
-      'R': { from: '#dc143c', to: '#ff6347', active: '#ff0000' },
-      'G': { from: '#228b22', to: '#32cd32', active: '#008000' }
-    };
-    
-    if (colors.length === 1) {
-      const color = colorMap[colors[0]];
-      return {
-        background: isActive
-          ? `linear-gradient(to bottom right, ${color.active}, ${color.to})`
-          : `linear-gradient(to bottom right, ${color.from}, ${color.to})`
-      };
-    } else if (colors.length === 2) {
-      const color1 = colorMap[colors[0]];
-      const color2 = colorMap[colors[1]];
-      return {
-        background: isActive
-          ? `linear-gradient(to bottom right, ${color1.active}, ${color2.active})`
-          : `linear-gradient(to bottom right, ${color1.from}, ${color2.to})`
-      };
-    } else {
-      // For 3+ colors, create a rainbow-like gradient
-      const gradientColors = colors.map(c => colorMap[c]);
-      const colorStops = gradientColors.map((c, i) => {
-        const percent = (i / (gradientColors.length - 1)) * 100;
-        return `${isActive ? c.active : c.from} ${percent}%`;
-      }).join(', ');
-      
-      return {
-        background: `linear-gradient(135deg, ${colorStops})`
-      };
-    }
-  };
 
   const toggleColor = (playerId, colorCode) => {
     const player = players.find(p => p.id === playerId);
@@ -380,66 +335,130 @@ const endGame = async () => {
     updatePlayer(playerId, 'colors', newColors);
   };
 
-  // Dark mode styles - MTG themed
-  const bgGradient = darkMode 
-    ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
-    : 'bg-gradient-to-br from-gray-100 via-gray-50 to-white';
-  
-  const cardBg = darkMode ? 'bg-gray-900' : 'bg-white';
-  const cardText = darkMode ? 'text-gray-100' : 'text-gray-900';
-  const headerBg = 'mtg-gradient';  // Always use MTG red/orange gradient
+  // Updated styles to match mockup - dark navy background
+  const bgStyle = 'bg-gray-900'; // Solid dark navy background
+  const containerBg = 'bg-slate-800'; // Slightly lighter for containers
+  const cardText = 'text-white'; // Always white text for contrast
 
   // Render game setup screen
   if (gameState === 'setup') {
     return (
-      <div className={`min-h-screen ${bgGradient} p-4`}>
-        <div className="max-w-md mx-auto">
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
+        padding: '1rem'
+      }}>
+        <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
           {/* Dark mode toggle */}
-          <div className="flex justify-end mb-4">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-lg ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} shadow-lg`}
+              style={{
+                padding: '0.5rem',
+                borderRadius: '0.5rem',
+                backgroundColor: darkMode ? 'rgba(255, 193, 7, 0.2)' : 'rgba(45, 55, 72, 0.1)',
+                border: `2px solid ${darkMode ? '#ffc107' : '#2d3748'}`,
+                color: darkMode ? '#ffc107' : '#2d3748',
+                cursor: 'pointer'
+              }}
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
           </div>
           
-          <div className={`${cardBg} rounded-2xl shadow-2xl overflow-hidden border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <div className={`${headerBg} text-white p-4`}>
-              <h1 className="text-2xl font-bold mtg-title tracking-wider">HOTCHI MOTCHI MTG</h1>
-              <p className="text-sm opacity-90 mtg-text">Commander Life Tracker</p>
+          <div style={{
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}>
+            {/* Header with gradient */}
+            <div style={{
+              background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)',
+              color: 'white',
+              padding: '1.5rem',
+              textAlign: 'center'
+            }}>
+              <h1 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 'bold', 
+                margin: '0 0 0.5rem 0',
+                letterSpacing: '0.05em'
+              }}>
+                COMMANDER TRACKER
+              </h1>
+              <p style={{ 
+                fontSize: '0.875rem', 
+                opacity: 0.9,
+                margin: 0
+              }}>
+                Add 2-4 players to begin
+              </p>
             </div>
             
-            <div className={`p-4 space-y-3 ${cardText}`}>
+            {/* Player setup area */}
+            <div style={{
+              backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+              padding: '1.5rem',
+              color: darkMode ? '#e2e8f0' : '#2d3748'
+            }}>
               {players.map((player, index) => (
                 <div 
                   key={player.id} 
-                  className={`${darkMode ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg p-3 border-2 ${
-                    firstPlayerRoll === index 
-                      ? 'border-orange-500 shadow-lg shadow-orange-500/50' 
-                      : darkMode ? 'border-gray-700' : 'border-gray-300'
-                  }`}
+                  style={{
+                    backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
+                    borderRadius: '0.75rem',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    border: firstPlayerRoll === index 
+                      ? '2px solid #ff6b35' 
+                      : `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
+                    boxShadow: firstPlayerRoll === index 
+                      ? '0 0 0 3px rgba(255, 107, 53, 0.1)' 
+                      : 'none'
+                  }}
                 >
                   {firstPlayerRoll === index && (
-                    <div className="text-orange-500 text-sm font-bold mb-2 flex items-center gap-1 mtg-text">
-                      <Dice6 size={16} />
+                    <div style={{
+                      color: '#ff6b35',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      marginBottom: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem'
+                    }}>
+                      <Dice6 size={14} />
                       GOES FIRST!
                     </div>
                   )}
                   
-                  <div className="flex justify-between items-start mb-2">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                     <input
                       type="text"
                       value={player.name}
                       onChange={(e) => updatePlayer(player.id, 'name', e.target.value)}
-                      className={`font-semibold bg-transparent border-b ${
-                        darkMode ? 'border-gray-600 text-gray-100' : 'border-gray-400'
-                      } focus:border-orange-500 outline-none mtg-text`}
+                      style={{
+                        fontSize: '1.125rem',
+                        fontWeight: '600',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderBottom: `2px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
+                        color: darkMode ? '#e2e8f0' : '#2d3748',
+                        outline: 'none',
+                        paddingBottom: '0.25rem'
+                      }}
                       placeholder="Player name"
                     />
                     <button
                       onClick={() => removePlayer(player.id)}
-                      className="text-red-600 hover:bg-red-100 p-1 rounded transition-colors"
+                      style={{
+                        color: '#e53e3e',
+                        padding: '0.25rem',
+                        borderRadius: '0.25rem',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        cursor: 'pointer'
+                      }}
                     >
                       <X size={18} />
                     </button>
@@ -449,33 +468,47 @@ const endGame = async () => {
                     type="text"
                     value={player.commander}
                     onChange={(e) => updatePlayer(player.id, 'commander', e.target.value)}
-                    className={`w-full text-sm ${
-                      darkMode ? 'bg-gray-700 text-gray-100' : 'bg-white'
-                    } rounded px-2 py-1 border ${
-                      darkMode ? 'border-gray-600' : 'border-gray-300'
-                    } mb-2 mtg-text`}
+                    style={{
+                      width: '100%',
+                      fontSize: '0.875rem',
+                      backgroundColor: darkMode ? '#1a202c' : '#edf2f7',
+                      color: darkMode ? '#cbd5e0' : '#4a5568',
+                      border: `1px solid ${darkMode ? '#2d3748' : '#e2e8f0'}`,
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem',
+                      marginBottom: '0.75rem',
+                      outline: 'none'
+                    }}
                     placeholder="Commander name"
                   />
                   
-                  <div className="flex gap-2">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {colorOptions.map(color => (
                       <button
                         key={color.code}
                         onClick={() => toggleColor(player.id, color.code)}
-                        className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                          player.colors?.includes(color.code) 
-                            ? 'border-black scale-110 shadow-lg' 
-                            : 'border-gray-400 hover:scale-105'
-                        }`}
-                        style={{ backgroundColor: color.color }}
+                        style={{
+                          width: '2rem',
+                          height: '2rem',
+                          borderRadius: '50%',
+                          border: player.colors?.includes(color.code) 
+                            ? '3px solid #2d3748' 
+                            : `2px solid ${darkMode ? '#4a5568' : '#cbd5e0'}`,
+                          backgroundColor: color.color,
+                          cursor: 'pointer',
+                          transform: player.colors?.includes(color.code) ? 'scale(1.1)' : 'scale(1)',
+                          transition: 'transform 0.2s'
+                        }}
                         title={color.name}
                       />
                     ))}
-                    {player.colors && player.colors.length > 0 && (
-                      <div className="ml-2 text-xs text-gray-500 self-center mtg-text">
-                        (commander colors)
-                      </div>
-                    )}
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      color: darkMode ? '#a0aec0' : '#718096',
+                      marginLeft: '0.5rem'
+                    }}>
+                      (card color)
+                    </span>
                   </div>
                 </div>
               ))}
@@ -483,10 +516,21 @@ const endGame = async () => {
               {players.length < 4 && (
                 <button
                   onClick={addPlayer}
-                  className={`w-full py-3 border-2 border-dashed ${
-                    darkMode ? 'border-gray-700 text-gray-400 hover:border-orange-600 hover:text-orange-400' 
-                    : 'border-gray-400 text-gray-600 hover:border-orange-500 hover:text-orange-600'
-                  } rounded-lg transition-colors flex items-center justify-center gap-2 mtg-text font-semibold`}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: `2px dashed ${darkMode ? '#4a5568' : '#cbd5e0'}`,
+                    backgroundColor: 'transparent',
+                    color: darkMode ? '#a0aec0' : '#718096',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    fontWeight: '600',
+                    marginBottom: '1rem'
+                  }}
                 >
                   <Plus size={20} />
                   ADD PLAYER {players.length + 1}
@@ -497,13 +541,24 @@ const endGame = async () => {
                 <button
                   onClick={randomizeFirstPlayer}
                   disabled={isRolling}
-                  className={`w-full py-3 rounded-lg font-bold text-white flex items-center justify-center gap-2 mtg-text tracking-wide ${
-                    isRolling 
-                      ? 'bg-orange-600 animate-pulse' 
-                      : 'bg-gray-800 hover:bg-gray-700'
-                  }`}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    borderRadius: '0.5rem',
+                    fontWeight: 'bold',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    letterSpacing: '0.025em',
+                    marginBottom: '1rem',
+                    backgroundColor: darkMode ? '#2d3748' : '#4a5568',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
                 >
-                  <Shuffle size={20} className={isRolling ? 'animate-spin' : ''} />
+                  <Shuffle size={20} style={{ animation: isRolling ? 'spin 1s linear infinite' : 'none' }} />
                   {isRolling ? 'ROLLING...' : 'RANDOMIZE FIRST PLAYER'}
                 </button>
               )}
@@ -511,11 +566,25 @@ const endGame = async () => {
               <button
                 onClick={startGame}
                 disabled={players.length < 2}
-                className={`w-full py-3 rounded-lg font-bold text-white flex items-center justify-center gap-2 mtg-title text-lg tracking-wider ${
-                  players.length >= 2 
-                    ? 'mtg-gradient hover:opacity-90 shadow-lg' 
-                    : 'bg-gray-400 cursor-not-allowed'
-                }`}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: 'bold',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  fontSize: '1.125rem',
+                  letterSpacing: '0.05em',
+                  background: players.length >= 2 
+                    ? 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)'
+                    : darkMode ? '#4a5568' : '#a0aec0',
+                  border: 'none',
+                  cursor: players.length >= 2 ? 'pointer' : 'not-allowed',
+                  boxShadow: players.length >= 2 ? '0 4px 14px 0 rgba(255, 107, 53, 0.39)' : 'none'
+                }}
               >
                 START GAME
                 <ChevronRight size={20} />
@@ -527,42 +596,79 @@ const endGame = async () => {
     );
   }
 
-  // Render game playing screen
+  // Render game playing screen  
   if (gameState === 'playing') {
     return (
-      <div className={`min-h-screen ${bgGradient} p-4`}>
-        <div className="max-w-4xl mx-auto">
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: darkMode ? '#2d3748' : '#f7fafc', 
+        padding: '1rem' 
+      }}>
+        <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
           {/* Dark mode toggle */}
-          <div className="flex justify-end mb-2">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-lg ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} shadow-lg`}
+              style={{
+                padding: '0.5rem',
+                borderRadius: '0.5rem',
+                backgroundColor: darkMode ? 'rgba(255, 193, 7, 0.2)' : 'rgba(45, 55, 72, 0.1)',
+                border: `2px solid ${darkMode ? '#ffc107' : '#2d3748'}`,
+                color: darkMode ? '#ffc107' : '#2d3748',
+                cursor: 'pointer'
+              }}
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
           </div>
           
           {/* Header */}
-          <div className={`${cardBg} rounded-t-2xl shadow-2xl p-4 flex justify-between items-center border-x border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <div className={`flex items-center gap-4 ${cardText}`}>
-              <span className="font-bold text-lg mtg-title">TURN {currentTurn}</span>
-              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mtg-text`}>⏱ {formatTime(elapsedTime)}</span>
+          <div style={{ 
+            backgroundColor: darkMode ? '#1a202c' : 'white',
+            borderRadius: '1rem 1rem 0 0',
+            padding: '1rem 1.5rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            color: darkMode ? 'white' : '#2d3748',
+            boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>TURN {currentTurn}</span>
+              <span style={{ color: darkMode ? '#a0aec0' : '#718096' }}>⏱ {formatTime(elapsedTime)}</span>
             </div>
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={() => setShowCommanderDamage(!showCommanderDamage)}
-                className={`px-3 py-1 ${
-                  darkMode ? 'bg-orange-900 text-orange-300' : 'bg-orange-100 text-orange-700'
-                } rounded-lg flex items-center gap-1 mtg-text font-semibold`}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: darkMode ? 'rgba(255, 107, 53, 0.9)' : 'rgba(255, 107, 53, 0.1)',
+                  color: darkMode ? 'white' : '#ff6b35',
+                  border: darkMode ? 'none' : '1px solid #ff6b35',
+                  borderRadius: '0.375rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem',
+                  fontWeight: '600',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer'
+                }}
               >
-                <Swords size={16} />
+                <Swords size={14} />
                 DAMAGE
               </button>
               <button
                 onClick={endGame}
-                className={`px-3 py-1 ${
-                  darkMode ? 'bg-red-900 text-red-300' : 'bg-red-100 text-red-700'
-                } rounded-lg mtg-text font-semibold`}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: darkMode ? 'rgba(229, 62, 62, 0.9)' : 'rgba(229, 62, 62, 0.1)',
+                  color: darkMode ? 'white' : '#e53e3e',
+                  border: darkMode ? 'none' : '1px solid #e53e3e',
+                  borderRadius: '0.375rem',
+                  fontWeight: '600',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer'
+                }}
               >
                 END GAME
               </button>
@@ -570,107 +676,184 @@ const endGame = async () => {
           </div>
           
           {/* Player Grid */}
-          <div className={`${cardBg} shadow-2xl p-4 grid grid-cols-2 gap-4 border-x ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            {players.map((player, index) => {
+          <div style={{ 
+            backgroundColor: darkMode ? '#1a202c' : 'white',
+            padding: '1rem',
+            display: 'flex',
+            gap: '1rem',
+            boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+          }}>
+            {players.slice(0, 2).map((player, index) => {
               const isActive = index === activePlayerIndex;
-              const shadowColor = player.colors && player.colors.length > 0
-                ? player.colors.includes('W') ? 'shadow-yellow-400/50'
-                : player.colors.includes('U') ? 'shadow-blue-400/50'
-                : player.colors.includes('B') ? 'shadow-purple-600/50'
-                : player.colors.includes('R') ? 'shadow-red-500/50'
-                : player.colors.includes('G') ? 'shadow-green-500/50'
-                : 'shadow-orange-500/50'
-                : 'shadow-orange-500/50';
+              
+              // Original gradients from screenshots
+              const getOriginalGradient = (playerIndex, playerName) => {
+                // Check if this is Nick (yellow-blue gradient) or Gino (green gradient)
+                if (playerName.toLowerCase().includes('nick')) {
+                  return 'linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%)'; // Yellow to Blue
+                } else {
+                  return 'linear-gradient(135deg, #10b981 0%, #059669 50%, #1e40af 100%)'; // Green gradient
+                }
+              };
               
               return (
                 <div
                   key={player.id}
-                  className={`rounded-xl p-4 transition-all relative text-white ${
-                    player.eliminated 
-                      ? 'opacity-50' 
-                      : isActive
-                      ? `scale-105 shadow-lg ${shadowColor}`
-                      : ''
-                  }`}
-                  style={
-                    player.eliminated
-                      ? { background: darkMode ? '#374151' : '#e5e7eb' }
-                      : getPlayerGradientStyle(player.colors, isActive)
-                  }
+                  style={{
+                    flex: '1 1 0%',
+                    borderRadius: '1rem',
+                    padding: '2rem 1.5rem',
+                    position: 'relative',
+                    color: 'white',
+                    background: getOriginalGradient(index, player.name),
+                    opacity: player.eliminated ? 0.6 : 1,
+                    minHeight: '12rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
                 >
+                  {/* Active player indicator */}
                   {isActive && !player.eliminated && (
-                    <div className="absolute -top-2 -right-2 bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shadow-lg animate-pulse">
-                      ⚔️
+                    <div style={{
+                      position: 'absolute',
+                      top: '-0.5rem',
+                      right: '-0.5rem',
+                      backgroundColor: '#ff6b35',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                    }}>
+                      <X size={18} />
                     </div>
                   )}
                   
                   {player.eliminated && (
-                    <div className="text-center mb-2">
-                      <Skull className="inline-block" size={20} />
-                      <span className="ml-2 font-bold mtg-text">ELIMINATED</span>
+                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                      <Skull size={24} style={{ marginBottom: '0.5rem' }} />
+                      <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>ELIMINATED</div>
                     </div>
                   )}
                   
-                  <div className="text-center">
-                    <div className="font-bold text-sm mb-1 drop-shadow-md mtg-text uppercase">{player.name}</div>
-                    <div className="text-xs opacity-90 mb-2 drop-shadow-md">{player.commander}</div>
+                  {/* Player name */}
+                  <div style={{ 
+                    fontWeight: 'bold', 
+                    fontSize: '1.25rem', 
+                    marginBottom: '1rem', 
+                    textTransform: 'uppercase',
+                    textAlign: 'center'
+                  }}>
+                    {player.name}
+                  </div>
+                  
+                  {/* Life total */}
+                  <div style={{ 
+                    fontSize: '4rem', 
+                    fontWeight: 'bold', 
+                    lineHeight: '1',
+                    textAlign: 'center',
+                    marginBottom: '1.5rem',
+                    position: 'relative'
+                  }}>
+                    {player.life}
                     
-                    <div className="relative">
-                      <div className="text-5xl font-bold my-4 drop-shadow-lg mtg-title">{player.life}</div>
-                      
-                      {/* Life change indicator */}
-                      {lifeChanges[player.id] && (
-                        <div 
-                          className={`absolute -right-4 top-1/2 -translate-y-1/2 text-3xl font-bold pointer-events-none ${
-                            lifeChanges[player.id] > 0 ? 'text-green-300' : 'text-red-400'
-                          } mtg-title`}
-                          style={{
-                            animation: 'fadeInOut 2s ease-out',
-                            textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)'
-                          }}
-                        >
-                          {lifeChanges[player.id] > 0 ? '+' : ''}{lifeChanges[player.id]}
-                        </div>
-                      )}
-                    </div>
-                    
-                    {!player.eliminated && (
-                      <div className="flex justify-center gap-4">
-                        <button
-                          onClick={() => changeLife(player.id, -1)}
-                          onContextMenu={(e) => {
-                            e.preventDefault();
-                            changeLife(player.id, -5);
-                          }}
-                          className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center backdrop-blur-sm border border-white/20"
-                        >
-                          <Minus size={24} />
-                        </button>
-                        <button
-                          onClick={() => changeLife(player.id, 1)}
-                          onContextMenu={(e) => {
-                            e.preventDefault();
-                            changeLife(player.id, 5);
-                          }}
-                          className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center backdrop-blur-sm border border-white/20"
-                        >
-                          <Plus size={24} />
-                        </button>
+                    {/* Life change indicator */}
+                    {lifeChanges[player.id] && (
+                      <div 
+                        style={{
+                          position: 'absolute',
+                          right: '-2rem',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          fontSize: '2rem',
+                          fontWeight: 'bold',
+                          pointerEvents: 'none',
+                          color: lifeChanges[player.id] > 0 ? '#10b981' : '#ef4444',
+                          animation: 'fadeInOut 2s ease-out',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }}
+                      >
+                        {lifeChanges[player.id] > 0 ? '+' : ''}{lifeChanges[player.id]}
                       </div>
                     )}
-                    
-                    <div className="flex justify-center gap-1 mt-3">
-                      {player.colors?.map(color => {
-                        const colorData = colorOptions.find(c => c.code === color);
-                        return (
-                          <div
-                            key={color}
-                            className="w-5 h-5 rounded-full border-2 border-white/80 shadow-md"
-                            style={{ backgroundColor: colorData?.color }}
-                          />
-                        );
-                      })}
+                  </div>
+                  
+                  {/* +/- Buttons */}
+                  {!player.eliminated && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => changeLife(player.id, -1)}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          changeLife(player.id, -5);
+                        }}
+                        style={{
+                          width: '3rem',
+                          height: '3rem',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '1.5rem',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        −
+                      </button>
+                      <button
+                        onClick={() => changeLife(player.id, 1)}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          changeLife(player.id, 5);
+                        }}
+                        style={{
+                          width: '3rem',
+                          height: '3rem',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '1.5rem',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        +
+                      </button>
                     </div>
+                  )}
+                  
+                  {/* Mana color indicators */}
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '0.375rem' }}>
+                    {player.colors?.map(color => {
+                      const colorData = colorOptions.find(c => c.code === color);
+                      return (
+                        <div
+                          key={color}
+                          style={{
+                            width: '1.25rem',
+                            height: '1.25rem',
+                            borderRadius: '50%',
+                            backgroundColor: colorData?.color,
+                            border: '2px solid rgba(255, 255, 255, 0.7)',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -679,8 +862,8 @@ const endGame = async () => {
           
           {/* Commander Damage Matrix */}
           {showCommanderDamage && (
-            <div className={`${cardBg} ${cardText} shadow-2xl p-4 border-x ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-              <h3 className="font-bold mb-3 mtg-title text-lg">COMMANDER DAMAGE TRACKER</h3>
+            <div className={`${containerBg} ${cardText} shadow-2xl p-4`}>
+              <h3 className="font-bold mb-3 text-lg">COMMANDER DAMAGE TRACKER</h3>
               
               {!selectedDamageDealer ? (
                 <div className="grid grid-cols-2 gap-2">
@@ -688,9 +871,7 @@ const endGame = async () => {
                     <button
                       key={dealer.id}
                       onClick={() => setSelectedDamageDealer(dealer.id)}
-                      className={`p-3 ${
-                        darkMode ? 'bg-orange-900 hover:bg-orange-800' : 'bg-orange-100 hover:bg-orange-200'
-                      } rounded-lg mtg-text font-semibold`}
+                      className="p-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-semibold"
                     >
                       {dealer.name}'s Damage →
                     </button>
@@ -700,9 +881,7 @@ const endGame = async () => {
                 <div>
                   <button
                     onClick={() => setSelectedDamageDealer(null)}
-                    className={`mb-3 text-sm ${
-                      darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
-                    } mtg-text`}
+                    className="mb-3 text-sm text-gray-300 hover:text-white"
                   >
                     ← Back
                   </button>
@@ -713,30 +892,26 @@ const endGame = async () => {
                       
                       return (
                         <div key={receiver.id} className="flex items-center gap-3">
-                          <span className="text-sm font-medium w-24 mtg-text">
+                          <span className="text-sm font-medium w-24">
                             → {receiver.name}
                           </span>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => updateCommanderDamage(selectedDamageDealer, receiver.id, damage - 1)}
-                              className={`w-8 h-8 ${
-                                darkMode ? 'bg-red-900 hover:bg-red-800' : 'bg-red-100 hover:bg-red-200'
-                              } rounded`}
+                              className="w-8 h-8 bg-red-600 hover:bg-red-700 rounded text-white"
                             >
                               -
                             </button>
-                            <span className={`w-12 text-center font-bold mtg-title ${damage >= 21 ? 'text-red-600' : ''}`}>
+                            <span className={`w-12 text-center font-bold ${damage >= 21 ? 'text-red-400' : 'text-white'}`}>
                               {damage}
                             </span>
                             <button
                               onClick={() => updateCommanderDamage(selectedDamageDealer, receiver.id, damage + 1)}
-                              className={`w-8 h-8 ${
-                                darkMode ? 'bg-green-900 hover:bg-green-800' : 'bg-green-100 hover:bg-green-200'
-                              } rounded`}
+                              className="w-8 h-8 bg-green-600 hover:bg-green-700 rounded text-white"
                             >
                               +
                             </button>
-                            {damage >= 21 && <span className="text-red-600 text-sm font-bold mtg-text">LETHAL!</span>}
+                            {damage >= 21 && <span className="text-red-400 text-sm font-bold">LETHAL!</span>}
                           </div>
                         </div>
                       );
@@ -748,13 +923,33 @@ const endGame = async () => {
           )}
           
           {/* Bottom Control Bar */}
-          <div className={`${darkMode ? 'bg-gray-900' : 'bg-gray-800'} rounded-b-2xl shadow-2xl p-4 flex justify-between items-center border-x border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <span className="text-white font-bold mtg-text">
+          <div style={{ 
+            backgroundColor: darkMode ? '#2d3748' : '#2d3748',
+            borderRadius: '0 0 1rem 1rem',
+            padding: '1rem 1.5rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            color: 'white'
+          }}>
+            <span style={{ fontWeight: '600', fontSize: '1.125rem' }}>
               {players[activePlayerIndex]?.name}'s Turn
             </span>
             <button
               onClick={nextTurn}
-              className="px-4 py-2 mtg-gradient text-white rounded-full font-bold hover:opacity-90 flex items-center gap-2 mtg-text shadow-lg"
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
+                color: 'white',
+                borderRadius: '2rem',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px 0 rgba(255, 107, 53, 0.39)'
+              }}
             >
               NEXT TURN
               <ChevronRight size={20} />
@@ -773,7 +968,7 @@ const endGame = async () => {
       .sort((a, b) => (b.eliminatedTurn || 0) - (a.eliminatedTurn || 0));
     
     return (
-      <div className={`min-h-screen ${bgGradient} p-4`}>
+      <div className={`min-h-screen ${bgStyle} p-4`}>
         <div className="max-w-md mx-auto">
           {/* Dark mode toggle */}
           <div className="flex justify-end mb-4">
@@ -785,8 +980,8 @@ const endGame = async () => {
             </button>
           </div>
           
-          <div className={`${cardBg} rounded-2xl shadow-2xl overflow-hidden border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <div className="mtg-gradient text-white p-6 text-center">
+          <div className={`${containerBg} rounded-2xl shadow-2xl overflow-hidden`}>
+            <div className="bg-orange-600 text-white p-6 text-center">
               <Trophy className="mx-auto mb-3" size={48} />
               <h1 className="text-2xl font-bold mb-2 mtg-title">GAME COMPLETE!</h1>
               <p className="text-3xl font-bold mtg-title tracking-wider">{winner?.name || 'NO WINNER'} WINS!</p>
