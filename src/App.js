@@ -64,7 +64,7 @@ const MTGCommanderTracker = () => {
   const [commanderDamage, setCommanderDamage] = useState({});
   const [showCommanderDamage, setShowCommanderDamage] = useState(false);
   const [selectedDamageDealer, setSelectedDamageDealer] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [firstPlayerRoll, setFirstPlayerRoll] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
   const [lifeChanges, setLifeChanges] = useState({}); // Track recent life changes for animation
