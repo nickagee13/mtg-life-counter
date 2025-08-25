@@ -3,6 +3,13 @@ import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, 
 import { supabase } from './lib/supabase';
 import './App.css';
 
+// Import mana color images
+import whiteImage from './mana_colors/white.jpeg';
+import blueImage from './mana_colors/blue.jpeg';
+import blackImage from './mana_colors/black.jpeg';
+import redImage from './mana_colors/red.png';
+import greenImage from './mana_colors/green.png';
+
 const MTGCommanderTracker = () => {
   // Add CSS for life change animation and MTG-style fonts
   React.useEffect(() => {
@@ -324,11 +331,11 @@ const endGame = async () => {
 
   // Color options for commanders
   const colorOptions = [
-    { code: 'W', name: 'White', color: '#fffbd5' },
-    { code: 'U', name: 'Blue', color: '#0e68ab' },
-    { code: 'B', name: 'Black', color: '#150b00' },
-    { code: 'R', name: 'Red', color: '#d3202a' },
-    { code: 'G', name: 'Green', color: '#00733e' }
+    { code: 'W', name: 'White', image: whiteImage },
+    { code: 'U', name: 'Blue', image: blueImage },
+    { code: 'B', name: 'Black', image: blackImage },
+    { code: 'R', name: 'Red', image: redImage },
+    { code: 'G', name: 'Green', image: greenImage }
   ];
 
 
@@ -503,10 +510,14 @@ const endGame = async () => {
                           border: player.colors?.includes(color.code) 
                             ? '3px solid #2d3748' 
                             : `2px solid ${darkMode ? '#4a5568' : '#cbd5e0'}`,
-                          backgroundColor: color.color,
                           cursor: 'pointer',
                           transform: player.colors?.includes(color.code) ? 'scale(1.1)' : 'scale(1)',
-                          transition: 'transform 0.2s'
+                          transition: 'transform 0.2s',
+                          padding: '0',
+                          overflow: 'hidden',
+                          backgroundImage: `url(${color.image})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
                         }}
                         title={color.name}
                       />
@@ -862,7 +873,9 @@ const endGame = async () => {
                             width: '1.25rem',
                             height: '1.25rem',
                             borderRadius: '50%',
-                            backgroundColor: colorData?.color,
+                            backgroundImage: `url(${colorData?.image})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
                             border: '2px solid rgba(255, 255, 255, 0.7)',
                             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
                           }}
