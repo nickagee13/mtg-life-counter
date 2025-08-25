@@ -116,7 +116,7 @@ const MTGCommanderTracker = () => {
 
   // Randomize first player
   const randomizeFirstPlayer = () => {
-    if (players.length < 2) return;
+    if (players.length < 1) return;
     
     setIsRolling(true);
     setFirstPlayerRoll(null);
@@ -138,8 +138,8 @@ const MTGCommanderTracker = () => {
 
   // Start the game
   const startGame = () => {
-    if (players.length < 2) {
-      alert('Need at least 2 players to start!');
+    if (players.length < 1) {
+      alert('Need at least 1 player to start!');
       return;
     }
     
@@ -216,12 +216,18 @@ const MTGCommanderTracker = () => {
   // Next turn
   const nextTurn = () => {
     const activePlayers = players.filter(p => !p.eliminated);
-    if (activePlayers.length <= 1) {
+    if (activePlayers.length <= 1 && players.length > 1) {
       endGame();
       return;
     }
     
-    // Find next active player
+    // For single player games, just increment turn counter
+    if (players.length === 1) {
+      setCurrentTurn(currentTurn + 1);
+      return;
+    }
+    
+    // Find next active player for multiplayer
     let nextIndex = (activePlayerIndex + 1) % players.length;
     while (players[nextIndex].eliminated) {
       nextIndex = (nextIndex + 1) % players.length;
@@ -379,11 +385,12 @@ const endGame = async () => {
               textAlign: 'center'
             }}>
               <h1 style={{ 
-                fontSize: '1.5rem', 
+                fontSize: '2rem', 
                 fontWeight: 'bold', 
                 margin: '0 0 0.5rem 0',
                 letterSpacing: '0.05em',
-                fontFamily: "'Windsor BT', serif"
+                fontFamily: "'Windsor BT', serif",
+                color: 'black'
               }}>
                 COMMANDER TRACKER
               </h1>
@@ -539,7 +546,7 @@ const endGame = async () => {
                 </button>
               )}
               
-              {players.length >= 2 && (
+              {players.length >= 1 && (
                 <button
                   onClick={randomizeFirstPlayer}
                   disabled={isRolling}
@@ -567,7 +574,7 @@ const endGame = async () => {
               
               <button
                 onClick={startGame}
-                disabled={players.length < 2}
+                disabled={players.length < 1}
                 style={{
                   width: '100%',
                   padding: '1rem',
@@ -580,12 +587,12 @@ const endGame = async () => {
                   gap: '0.5rem',
                   fontSize: '1.125rem',
                   letterSpacing: '0.05em',
-                  background: players.length >= 2 
+                  background: players.length >= 1 
                     ? 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)'
                     : darkMode ? '#4a5568' : '#a0aec0',
                   border: 'none',
-                  cursor: players.length >= 2 ? 'pointer' : 'not-allowed',
-                  boxShadow: players.length >= 2 ? '0 4px 14px 0 rgba(255, 107, 53, 0.39)' : 'none'
+                  cursor: players.length >= 1 ? 'pointer' : 'not-allowed',
+                  boxShadow: players.length >= 1 ? '0 4px 14px 0 rgba(255, 107, 53, 0.39)' : 'none'
                 }}
               >
                 START GAME
@@ -689,7 +696,7 @@ const endGame = async () => {
             gap: '1rem',
             boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
           }}>
-            {players.slice(0, 2).map((player, index) => {
+            {players.map((player, index) => {
               const isActive = index === activePlayerIndex;
               
               // Original gradients from screenshots
@@ -945,7 +952,7 @@ const endGame = async () => {
               fontSize: '1.125rem',
               fontFamily: "'Windsor BT', serif"
             }}>
-              {players[activePlayerIndex]?.name}'s Turn
+              {players.length === 1 ? `${players[0]?.name}'s Game` : `${players[activePlayerIndex]?.name}'s Turn`}
             </span>
             <button
               onClick={nextTurn}
