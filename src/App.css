@@ -1,4 +1,10 @@
 /* MTG Tracker Styles */
+@font-face {
+  font-family: 'Windsor BT';
+  src: url('./windsorbtelongated.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 .bg-gray-900 {
   background-color: #111827;
 }

@@ -382,7 +382,8 @@ const endGame = async () => {
                 fontSize: '1.5rem', 
                 fontWeight: 'bold', 
                 margin: '0 0 0.5rem 0',
-                letterSpacing: '0.05em'
+                letterSpacing: '0.05em',
+                fontFamily: "'Windsor BT', serif"
               }}>
                 COMMANDER TRACKER
               </h1>
@@ -445,7 +446,8 @@ const endGame = async () => {
                         borderBottom: `2px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
                         color: darkMode ? '#e2e8f0' : '#2d3748',
                         outline: 'none',
-                        paddingBottom: '0.25rem'
+                        paddingBottom: '0.25rem',
+                        fontFamily: "'Windsor BT', serif"
                       }}
                       placeholder="Player name"
                     />
@@ -634,7 +636,11 @@ const endGame = async () => {
             boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>TURN {currentTurn}</span>
+              <span style={{ 
+                fontWeight: 'bold', 
+                fontSize: '1.25rem',
+                fontFamily: "'Windsor BT', serif"
+              }}>TURN {currentTurn}</span>
               <span style={{ color: darkMode ? '#a0aec0' : '#718096' }}>⏱ {formatTime(elapsedTime)}</span>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -747,7 +753,8 @@ const endGame = async () => {
                     fontSize: '1.25rem', 
                     marginBottom: '1rem', 
                     textTransform: 'uppercase',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    fontFamily: "'Windsor BT', serif"
                   }}>
                     {player.name}
                   </div>
@@ -759,7 +766,8 @@ const endGame = async () => {
                     lineHeight: '1',
                     textAlign: 'center',
                     marginBottom: '1.5rem',
-                    position: 'relative'
+                    position: 'relative',
+                    fontFamily: "'Windsor BT', serif"
                   }}>
                     {player.life}
                     
@@ -932,7 +940,11 @@ const endGame = async () => {
             alignItems: 'center',
             color: 'white'
           }}>
-            <span style={{ fontWeight: '600', fontSize: '1.125rem' }}>
+            <span style={{ 
+              fontWeight: '600', 
+              fontSize: '1.125rem',
+              fontFamily: "'Windsor BT', serif"
+            }}>
               {players[activePlayerIndex]?.name}'s Turn
             </span>
             <button
