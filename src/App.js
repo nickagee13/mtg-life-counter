@@ -4,11 +4,12 @@ import { supabase } from './lib/supabase';
 import './App.css';
 
 // Import mana color images
-import whiteImage from './mana_colors/white.jpeg';
-import blueImage from './mana_colors/blue.jpeg';
-import blackImage from './mana_colors/black.jpeg';
-import redImage from './mana_colors/red.png';
-import greenImage from './mana_colors/green.png';
+import whiteImage from './assets/images/white.jpeg';
+import blueImage from './assets/images/blue.jpeg';
+import blackImage from './assets/images/black.jpeg';
+import redImage from './assets/images/red.png';
+import greenImage from './assets/images/green.png';
+import hotchiMotchiLogo from './assets/images/hotchi-motchi-logo.png';
 
 const MTGCommanderTracker = () => {
   // Add CSS for life change animation and MTG-style fonts
@@ -401,13 +402,15 @@ const endGame = async () => {
               }}>
                 COMMANDER TRACKER
               </h1>
-              <p style={{ 
-                fontSize: '0.875rem', 
-                opacity: 0.9,
-                margin: 0
-              }}>
-                Add 2-4 players to begin
-              </p>
+              <img 
+                src={hotchiMotchiLogo} 
+                alt="Hotchi Motchi" 
+                style={{ 
+                  height: '2rem', 
+                  objectFit: 'contain',
+                  margin: 0
+                }} 
+              />
             </div>
             
             {/* Player setup area */}
@@ -453,7 +456,7 @@ const endGame = async () => {
                       value={player.name}
                       onChange={(e) => updatePlayer(player.id, 'name', e.target.value)}
                       style={{
-                        fontSize: '1.125rem',
+                        fontSize: '1.25rem',
                         fontWeight: '600',
                         backgroundColor: 'transparent',
                         border: 'none',
@@ -779,7 +782,7 @@ const endGame = async () => {
                   
                   {/* Life total */}
                   <div style={{ 
-                    fontSize: '4rem', 
+                    fontSize: '4.5rem', 
                     fontWeight: 'bold', 
                     lineHeight: '1',
                     textAlign: 'center',
@@ -995,97 +998,216 @@ const endGame = async () => {
   // Render game finished screen
   if (gameState === 'finished') {
     const winner = players.find(p => !p.eliminated);
-    const turnOrder = players
-      .filter(p => p.eliminated)
-      .sort((a, b) => (b.eliminatedTurn || 0) - (a.eliminatedTurn || 0));
     
     return (
-      <div className={`min-h-screen ${bgStyle} p-4`}>
-        <div className="max-w-md mx-auto">
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
+        padding: '1rem'
+      }}>
+        <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
           {/* Dark mode toggle */}
-          <div className="flex justify-end mb-4">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-lg ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} shadow-lg`}
+              style={{
+                padding: '0.5rem',
+                borderRadius: '0.5rem',
+                backgroundColor: darkMode ? 'rgba(255, 193, 7, 0.2)' : 'rgba(45, 55, 72, 0.1)',
+                border: `2px solid ${darkMode ? '#ffc107' : '#2d3748'}`,
+                color: darkMode ? '#ffc107' : '#2d3748',
+                cursor: 'pointer'
+              }}
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
           </div>
           
-          <div className={`${containerBg} rounded-2xl shadow-2xl overflow-hidden`}>
-            <div className="bg-orange-600 text-white p-6 text-center">
-              <Trophy className="mx-auto mb-3" size={48} />
-              <h1 className="text-2xl font-bold mb-2 mtg-title">GAME COMPLETE!</h1>
-              <p className="text-3xl font-bold mtg-title tracking-wider">{winner?.name || 'NO WINNER'} WINS!</p>
+          <div style={{
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}>
+            {/* Header with gradient */}
+            <div style={{
+              background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)',
+              color: 'white',
+              padding: '1.5rem',
+              textAlign: 'center'
+            }}>
+              <Trophy size={48} style={{ marginBottom: '0.75rem', marginLeft: 'auto', marginRight: 'auto', display: 'block' }} />
+              <h1 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 'bold', 
+                margin: '0 0 0.5rem 0',
+                letterSpacing: '0.05em',
+                fontFamily: "'Windsor BT', serif",
+                color: 'white'
+              }}>
+                GAME COMPLETE!
+              </h1>
+              <p style={{ 
+                fontSize: '1.875rem', 
+                fontWeight: 'bold',
+                margin: 0,
+                letterSpacing: '0.1em',
+                fontFamily: "'Windsor BT', serif",
+                color: 'white'
+              }}>
+                {winner?.name || 'NO WINNER'} WINS!
+              </p>
             </div>
             
-            <div className={`p-6 ${cardText}`}>
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg p-3 text-center`}>
-                  <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mtg-text`}>TOTAL TURNS</div>
-                  <div className="text-2xl font-bold mtg-title">{currentTurn}</div>
+            {/* Content area */}
+            <div style={{
+              backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+              padding: '1.5rem',
+              color: darkMode ? '#e2e8f0' : '#2d3748'
+            }}>
+              {/* Stats grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{
+                  backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ 
+                    fontSize: '0.875rem', 
+                    color: darkMode ? '#a0aec0' : '#718096',
+                    marginBottom: '0.25rem',
+                    fontFamily: "'Windsor BT', serif"
+                  }}>
+                    TOTAL TURNS
+                  </div>
+                  <div style={{ 
+                    fontSize: '1.5rem', 
+                    fontWeight: 'bold',
+                    fontFamily: "'Windsor BT', serif"
+                  }}>
+                    {currentTurn}
+                  </div>
                 </div>
-                <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg p-3 text-center`}>
-                  <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mtg-text`}>DURATION</div>
-                  <div className="text-2xl font-bold mtg-title">{formatTime(elapsedTime)}</div>
+                <div style={{
+                  backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ 
+                    fontSize: '0.875rem', 
+                    color: darkMode ? '#a0aec0' : '#718096',
+                    marginBottom: '0.25rem',
+                    fontFamily: "'Windsor BT', serif"
+                  }}>
+                    DURATION
+                  </div>
+                  <div style={{ 
+                    fontSize: '1.5rem', 
+                    fontWeight: 'bold',
+                    fontFamily: "'Windsor BT', serif"
+                  }}>
+                    {formatTime(elapsedTime)}
+                  </div>
                 </div>
               </div>
               
-              <h3 className="font-bold mb-3 mtg-title text-lg">FINAL STANDINGS</h3>
-              <div className="space-y-2 mb-6">
+              {/* Final standings */}
+              <h3 style={{ 
+                fontWeight: 'bold', 
+                marginBottom: '0.75rem',
+                fontSize: '1.125rem',
+                fontFamily: "'Windsor BT', serif"
+              }}>
+                FINAL STANDINGS
+              </h3>
+              
+              <div style={{ marginBottom: '1.5rem' }}>
                 {winner && (
-                  <div className={`flex items-center gap-3 p-2 ${
-                    darkMode ? 'bg-gradient-to-r from-yellow-900/30 to-orange-900/30' : 'bg-gradient-to-r from-yellow-50 to-orange-50'
-                  } rounded-lg border ${darkMode ? 'border-yellow-700' : 'border-yellow-400'}`}>
-                    <span className="text-2xl">🥇</span>
-                    <div>
-                      <div className="font-semibold mtg-text">{winner.name}</div>
-                      <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {winner.commander}
-                      </div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem',
+                    backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
+                    borderRadius: '0.5rem',
+                    border: `2px solid ${darkMode ? '#f59e0b' : '#f59e0b'}`
+                  }}>
+                    <span style={{ fontSize: '1.5rem' }}>🏆</span>
+                    <div style={{ fontWeight: '600', fontFamily: "'Windsor BT', serif" }}>
+                      {winner.name}
                     </div>
                   </div>
                 )}
-                
-                {turnOrder.map((player, index) => (
-                  <div key={player.id} className={`flex items-center gap-3 p-2 ${
-                    darkMode ? 'bg-gray-800' : 'bg-gray-50'
-                  } rounded-lg`}>
-                    <span className="text-2xl">
-                      {index === 0 ? '🥈' : index === 1 ? '🥉' : '💀'}
-                    </span>
-                    <div>
-                      <div className="font-semibold mtg-text">{player.name}</div>
-                      <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {player.commander} • Eliminated turn {player.eliminatedTurn}
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
               
-              <div className="flex flex-col gap-3">
+              {/* Button section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {/* Quick rematch button */}
                 <button
                   onClick={() => newGame(true)}
-                  className="w-full py-3 bg-gray-800 text-white rounded-lg font-bold hover:bg-gray-700 flex items-center justify-center gap-2 mtg-text"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    backgroundColor: darkMode ? '#4a5568' : '#4a5568',
+                    color: 'white',
+                    borderRadius: '0.5rem',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: "'Windsor BT', serif"
+                  }}
                 >
-                  <Shuffle size={20} />
+                  <Shuffle size={18} />
                   QUICK REMATCH (SAME PLAYERS)
                 </button>
                 
-                <div className="flex gap-3">
+                {/* Bottom two buttons */}
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
                   <button
                     onClick={() => newGame(false)}
-                    className="flex-1 py-3 mtg-gradient text-white rounded-lg font-bold hover:opacity-90 flex items-center justify-center gap-2 mtg-text shadow-lg"
+                    style={{
+                      flex: '1',
+                      padding: '0.75rem',
+                      background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)',
+                      color: 'white',
+                      borderRadius: '0.5rem',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontFamily: "'Windsor BT', serif"
+                    }}
                   >
-                    <RotateCw size={20} />
+                    <RotateCw size={18} />
                     NEW GAME
                   </button>
                   <button
                     onClick={() => console.log('Save to history')}
-                    className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center justify-center gap-2 mtg-text shadow-lg"
+                    style={{
+                      flex: '1',
+                      padding: '0.75rem',
+                      backgroundColor: '#059669',
+                      color: 'white',
+                      borderRadius: '0.5rem',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontFamily: "'Windsor BT', serif"
+                    }}
                   >
-                    <Save size={20} />
+                    <Save size={18} />
                     SAVE
                   </button>
                 </div>
