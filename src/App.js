@@ -722,7 +722,7 @@ const endGame = async () => {
                         position: 'absolute',
                         top: '100%',
                         left: '0',
-                        right: '0',
+                        right: '1rem',
                         zIndex: 1000,
                         backgroundColor: darkMode ? '#1a202c' : '#ffffff',
                         border: `1px solid ${darkMode ? '#2d3748' : '#e2e8f0'}`,
@@ -771,125 +771,109 @@ const endGame = async () => {
                     )}
                   </div>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {player.commander ? (
-                      // Show commander's colors as read-only indicators
-                      <>
-                        {colorOptions.map(color => {
-                          const isCommanderColor = player.colors?.includes(color.code);
-                          if (!isCommanderColor) return null;
-                          
-                          return (
-                            <div
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {player.commander ? (
+                        // Show commander's colors as read-only indicators
+                        <>
+                          {colorOptions.map(color => {
+                            const isCommanderColor = player.colors?.includes(color.code);
+                            if (!isCommanderColor) return null;
+                            
+                            return (
+                              <div
+                                key={color.code}
+                                style={{
+                                  width: '2rem',
+                                  height: '2rem',
+                                  borderRadius: '50%',
+                                  border: '3px solid #10b981',
+                                  padding: '0',
+                                  overflow: 'hidden',
+                                  backgroundImage: `url(${color.image})`,
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'center'
+                                }}
+                                title={`${color.name} (Commander color)`}
+                              />
+                            );
+                          })}
+                          {(!player.colors || player.colors.length === 0) && (
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              color: darkMode ? '#a0aec0' : '#718096',
+                              fontStyle: 'italic'
+                            }}>
+                              Colorless commander
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        // Show manual color selection when no commander is chosen
+                        <>
+                          {colorOptions.map(color => (
+                            <button
                               key={color.code}
+                              onClick={() => toggleColor(player.id, color.code)}
                               style={{
                                 width: '2rem',
                                 height: '2rem',
                                 borderRadius: '50%',
-                                border: '3px solid #10b981',
+                                border: player.colors?.includes(color.code) 
+                                  ? '3px solid #2d3748' 
+                                  : `2px solid ${darkMode ? '#4a5568' : '#cbd5e0'}`,
+                                cursor: 'pointer',
+                                transform: player.colors?.includes(color.code) ? 'scale(1.1)' : 'scale(1)',
+                                transition: 'transform 0.2s',
                                 padding: '0',
                                 overflow: 'hidden',
                                 backgroundImage: `url(${color.image})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center'
                               }}
-                              title={`${color.name} (Commander color)`}
+                              title={color.name}
                             />
-                          );
-                        })}
-                        {(!player.colors || player.colors.length === 0) && (
-                          <span style={{ 
-                            fontSize: '0.75rem', 
-                            color: darkMode ? '#a0aec0' : '#718096',
-                            fontStyle: 'italic'
-                          }}>
-                            Colorless commander
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      // Show manual color selection when no commander is chosen
-                      <>
-                        {colorOptions.map(color => (
-                          <button
-                            key={color.code}
-                            onClick={() => toggleColor(player.id, color.code)}
-                            style={{
-                              width: '2rem',
-                              height: '2rem',
-                              borderRadius: '50%',
-                              border: player.colors?.includes(color.code) 
-                                ? '3px solid #2d3748' 
-                                : `2px solid ${darkMode ? '#4a5568' : '#cbd5e0'}`,
-                              cursor: 'pointer',
-                              transform: player.colors?.includes(color.code) ? 'scale(1.1)' : 'scale(1)',
-                              transition: 'transform 0.2s',
-                              padding: '0',
-                              overflow: 'hidden',
-                              backgroundImage: `url(${color.image})`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center'
-                            }}
-                            title={color.name}
-                          />
-                        ))}
-                      </>
-                    )}
-                  </div>
-                  
-                  {/* Commander abilities display */}
-                  {player.commander && player.commanderText && (
-                    <div style={{ 
-                      marginTop: '0.75rem',
-                      padding: '0.75rem',
-                      backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
-                      borderRadius: '0.5rem',
-                      border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`
-                    }}>
-                      <div style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 'bold',
-                        color: darkMode ? '#cbd5e0' : '#4a5568',
-                        marginBottom: '0.375rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
-                      }}>
-                        Abilities
-                      </div>
-                      <div style={{
-                        fontSize: '0.75rem',
-                        color: darkMode ? '#e2e8f0' : '#2d3748',
-                        lineHeight: '1.4',
-                        whiteSpace: 'pre-wrap'
-                      }}>
-                        {player.commanderText}
-                      </div>
-                      {player.commanderKeywords && player.commanderKeywords.length > 0 && (
-                        <div style={{
-                          marginTop: '0.5rem',
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: '0.25rem'
-                        }}>
-                          {player.commanderKeywords.map((keyword, index) => (
-                            <span
-                              key={index}
-                              style={{
-                                fontSize: '0.625rem',
-                                padding: '0.125rem 0.375rem',
-                                backgroundColor: darkMode ? '#4a5568' : '#cbd5e0',
-                                color: darkMode ? '#e2e8f0' : '#2d3748',
-                                borderRadius: '0.25rem',
-                                fontWeight: '500'
-                              }}
-                            >
-                              {keyword}
-                            </span>
                           ))}
-                        </div>
+                        </>
                       )}
                     </div>
-                  )}
+                    
+                    {/* Keywords display */}
+                    {player.commander && player.commanderKeywords && player.commanderKeywords.length > 0 && (
+                      <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '0.25rem',
+                        alignItems: 'center'
+                      }}>
+                        {player.commanderKeywords.slice(0, 4).map((keyword, index) => (
+                          <span
+                            key={index}
+                            style={{
+                              fontSize: '0.625rem',
+                              padding: '0.125rem 0.375rem',
+                              backgroundColor: darkMode ? '#4a5568' : '#cbd5e0',
+                              color: darkMode ? '#e2e8f0' : '#2d3748',
+                              borderRadius: '0.25rem',
+                              fontWeight: '500',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                        {player.commanderKeywords.length > 4 && (
+                          <span style={{
+                            fontSize: '0.625rem',
+                            color: darkMode ? '#a0aec0' : '#718096',
+                            fontWeight: '500'
+                          }}>
+                            +{player.commanderKeywords.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
               
@@ -1316,28 +1300,11 @@ const endGame = async () => {
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    border: isActive && !player.eliminated ? '4px solid #ff6b35' : 'none',
+                    boxShadow: isActive && !player.eliminated ? '0 0 20px rgba(255, 107, 53, 0.5)' : 'none'
                   }}
                 >
-                  {/* Active player indicator */}
-                  {isActive && !player.eliminated && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '-0.5rem',
-                      right: '-0.5rem',
-                      backgroundColor: '#ff6b35',
-                      color: 'white',
-                      borderRadius: '50%',
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-                    }}>
-                      <X size={18} />
-                    </div>
-                  )}
                   
                   {player.eliminated && (
                     <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
@@ -1637,7 +1604,7 @@ const endGame = async () => {
               fontSize: '1.125rem',
               fontFamily: "'Windsor BT', serif"
             }}>
-              {players.length === 1 ? `${players[0]?.name}'s Game` : `${players[activePlayerIndex]?.name}'s Turn`}
+              {players.length === 1 ? `${players[0]?.name}'s Game` : 'Commander Game'}
             </span>
             <button
               onClick={nextTurn}
