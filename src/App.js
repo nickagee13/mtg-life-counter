@@ -330,9 +330,18 @@ const MTGCommanderTracker = () => {
     // Accumulate life changes instead of replacing
     setLifeChanges(prev => {
       const currentChange = prev[playerId] || 0;
+      const newChange = currentChange + delta;
+      
+      // If the change would be 0, don't show it at all
+      if (newChange === 0) {
+        const newChanges = { ...prev };
+        delete newChanges[playerId];
+        return newChanges;
+      }
+      
       return {
         ...prev,
-        [playerId]: currentChange + delta
+        [playerId]: newChange
       };
     });
     
@@ -1168,9 +1177,9 @@ const endGame = async () => {
       <div style={{ 
         minHeight: '100vh', 
         backgroundColor: darkMode ? '#2d3748' : '#f7fafc', 
-        padding: '1rem' 
+        padding: '0.5rem' 
       }}>
-        <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+        <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '0 0.5rem' }}>
           {/* Dark mode toggle */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
@@ -1248,9 +1257,10 @@ const endGame = async () => {
           {/* Player Grid */}
           <div style={{ 
             backgroundColor: darkMode ? '#1a202c' : 'white',
-            padding: '1rem',
+            padding: '0.75rem',
             display: 'flex',
-            gap: '1rem',
+            gap: players.length <= 2 ? '1rem' : '0.5rem',
+            flexWrap: players.length > 2 ? 'wrap' : 'nowrap',
             boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
           }}>
             {players.map((player, index) => {
@@ -1289,14 +1299,14 @@ const endGame = async () => {
                 <div
                   key={player.id}
                   style={{
-                    flex: '1 1 0%',
+                    flex: players.length <= 2 ? '1 1 0%' : players.length === 3 ? '1 1 calc(50% - 0.25rem)' : '1 1 calc(50% - 0.25rem)',
                     borderRadius: '1rem',
-                    padding: '2rem 1.5rem',
+                    padding: players.length <= 2 ? '2rem 1.5rem' : '1.5rem 1rem',
                     position: 'relative',
                     color: 'white',
                     ...getPlayerBackground(player, index),
                     opacity: player.eliminated ? 0.6 : 1,
-                    minHeight: '12rem',
+                    minHeight: players.length <= 2 ? '12rem' : '10rem',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -1340,7 +1350,7 @@ const endGame = async () => {
                     {player.life}
                     
                     {/* Life change indicator */}
-                    {lifeChanges[player.id] && (
+                    {lifeChanges[player.id] && lifeChanges[player.id] !== 0 && (
                       <div 
                         style={{
                           position: 'absolute',
@@ -1599,13 +1609,6 @@ const endGame = async () => {
             alignItems: 'center',
             color: 'white'
           }}>
-            <span style={{ 
-              fontWeight: '600', 
-              fontSize: '1.125rem',
-              fontFamily: "'Windsor BT', serif"
-            }}>
-              {players.length === 1 ? `${players[0]?.name}'s Game` : 'Commander Game'}
-            </span>
             <button
               onClick={nextTurn}
               style={{
