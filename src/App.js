@@ -241,7 +241,7 @@ const MTGCommanderTracker = () => {
       setFirstPlayerRoll(Math.floor(Math.random() * players.length));
       rollCount++;
       
-      if (rollCount > 10) {
+      if (rollCount > 15) {
         clearInterval(rollInterval);
         const finalPlayer = Math.floor(Math.random() * players.length);
         setFirstPlayerRoll(finalPlayer);
@@ -494,7 +494,7 @@ const endGame = async () => {
             <div style={{
               background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)',
               color: 'white',
-              padding: '0.75rem 1.5rem',
+              padding: '1rem 1.5rem 0.5rem 1.5rem',
               textAlign: 'center'
             }}>
               <img 
@@ -508,16 +508,16 @@ const endGame = async () => {
                   console.log('Logo loaded successfully');
                 }}
                 style={{ 
-                  height: '18rem', 
+                  height: '12rem', 
                   objectFit: 'contain',
-                  margin: '0 auto 0.05rem auto',
+                  margin: '0 auto 0.25rem auto',
                   display: 'block'
                 }} 
               />
               <h1 style={{ 
-                fontSize: '2.25rem', 
+                fontSize: '1.75rem', 
                 fontWeight: 'bold', 
-                margin: '0',
+                margin: '0 0 0.5rem 0',
                 letterSpacing: '0.05em',
                 fontFamily: "'Matrix Bold', sans-serif",
                 color: 'black'
@@ -821,7 +821,7 @@ const endGame = async () => {
                   }}
                 >
                   <Plus size={20} />
-                  ADD PLAYER {players.length + 1}
+                  <span style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>ADD PLAYER {players.length + 1}</span>
                 </button>
               )}
               
@@ -834,6 +834,7 @@ const endGame = async () => {
                     padding: '1rem',
                     borderRadius: '0.5rem',
                     fontWeight: 'bold',
+                    fontSize: '1.125rem',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
