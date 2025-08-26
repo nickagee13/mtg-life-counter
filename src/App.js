@@ -15,6 +15,13 @@ const MTGCommanderTracker = () => {
   React.useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
+      @font-face {
+        font-family: 'Matrix Bold';
+        src: url('./Matrix-Bold.ttf') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+      }
+      
       @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&display=swap');
       
       @keyframes fadeInOut {
@@ -40,13 +47,17 @@ const MTGCommanderTracker = () => {
       }
       
       .mtg-title {
-        font-family: 'Bebas Neue', sans-serif;
+        font-family: 'Matrix Bold', 'Bebas Neue', sans-serif;
         letter-spacing: 0.08em;
         text-transform: uppercase;
       }
       
       .mtg-text {
-        font-family: 'Oswald', sans-serif;
+        font-family: 'Matrix Bold', 'Oswald', sans-serif;
+      }
+      
+      * {
+        font-family: 'Matrix Bold', sans-serif !important;
       }
       
       .mtg-gradient {
@@ -403,7 +414,7 @@ const endGame = async () => {
                 style={{ 
                   height: '12rem', 
                   objectFit: 'contain',
-                  margin: '0 auto 0.25rem auto',
+                  margin: '0 auto 0.1rem auto',
                   display: 'block'
                 }} 
               />
@@ -412,7 +423,7 @@ const endGame = async () => {
                 fontWeight: 'bold', 
                 margin: '0',
                 letterSpacing: '0.05em',
-                fontFamily: "'Windsor BT', serif",
+                fontFamily: "'Matrix Bold', sans-serif",
                 color: 'black'
               }}>
                 LIFE TRACKER
@@ -1047,7 +1058,7 @@ const endGame = async () => {
                 fontWeight: 'bold', 
                 margin: '0 0 0.5rem 0',
                 letterSpacing: '0.05em',
-                fontFamily: "'Windsor BT', serif",
+                fontFamily: "'Matrix Bold', sans-serif",
                 color: 'white'
               }}>
                 GAME COMPLETE!
@@ -1057,7 +1068,7 @@ const endGame = async () => {
                 fontWeight: 'bold',
                 margin: 0,
                 letterSpacing: '0.1em',
-                fontFamily: "'Windsor BT', serif",
+                fontFamily: "'Matrix Bold', sans-serif",
                 color: 'white'
               }}>
                 {winner?.name || 'NO WINNER'} WINS!
