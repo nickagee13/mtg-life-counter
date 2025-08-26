@@ -153,7 +153,8 @@ const MTGCommanderTracker = () => {
           mana_cost: card.mana_cost || '',
           type_line: card.type_line,
           set_name: card.set_name,
-          image_small: card.image_uris?.small || null
+          image_small: card.image_uris?.small || null,
+          color_identity: card.color_identity || []
         }));
         setSearchResults(prev => ({ ...prev, [playerId]: commanders }));
       } else {
@@ -184,8 +185,9 @@ const MTGCommanderTracker = () => {
   };
 
   // Select commander from search results
-  const selectCommander = (playerId, commanderName) => {
-    updatePlayer(playerId, 'commander', commanderName);
+  const selectCommander = (playerId, commander) => {
+    updatePlayer(playerId, 'commander', commander.name);
+    updatePlayer(playerId, 'colors', commander.color_identity);
     setSearchResults(prev => ({ ...prev, [playerId]: [] }));
   };
 
@@ -634,7 +636,7 @@ const endGame = async () => {
                         {searchResults[player.id].map((commander, index) => (
                           <div
                             key={`${commander.name}-${index}`}
-                            onClick={() => selectCommander(player.id, commander.name)}
+                            onClick={() => selectCommander(player.id, commander)}
                             style={{
                               padding: '0.5rem 0.75rem',
                               cursor: 'pointer',
@@ -672,36 +674,83 @@ const endGame = async () => {
                   </div>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {colorOptions.map(color => (
-                      <button
-                        key={color.code}
-                        onClick={() => toggleColor(player.id, color.code)}
-                        style={{
-                          width: '2rem',
-                          height: '2rem',
-                          borderRadius: '50%',
-                          border: player.colors?.includes(color.code) 
-                            ? '3px solid #2d3748' 
-                            : `2px solid ${darkMode ? '#4a5568' : '#cbd5e0'}`,
-                          cursor: 'pointer',
-                          transform: player.colors?.includes(color.code) ? 'scale(1.1)' : 'scale(1)',
-                          transition: 'transform 0.2s',
-                          padding: '0',
-                          overflow: 'hidden',
-                          backgroundImage: `url(${color.image})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center'
-                        }}
-                        title={color.name}
-                      />
-                    ))}
-                    <span style={{ 
-                      fontSize: '0.75rem', 
-                      color: darkMode ? '#a0aec0' : '#718096',
-                      marginLeft: '0.5rem'
-                    }}>
-                      (card color)
-                    </span>
+                    {player.commander ? (
+                      // Show commander's colors as read-only indicators
+                      <>
+                        {colorOptions.map(color => {
+                          const isCommanderColor = player.colors?.includes(color.code);
+                          if (!isCommanderColor) return null;
+                          
+                          return (
+                            <div
+                              key={color.code}
+                              style={{
+                                width: '2rem',
+                                height: '2rem',
+                                borderRadius: '50%',
+                                border: '3px solid #10b981',
+                                padding: '0',
+                                overflow: 'hidden',
+                                backgroundImage: `url(${color.image})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                              }}
+                              title={`${color.name} (Commander color)`}
+                            />
+                          );
+                        })}
+                        {(!player.colors || player.colors.length === 0) && (
+                          <span style={{ 
+                            fontSize: '0.75rem', 
+                            color: darkMode ? '#a0aec0' : '#718096',
+                            fontStyle: 'italic'
+                          }}>
+                            Colorless commander
+                          </span>
+                        )}
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          color: darkMode ? '#a0aec0' : '#718096',
+                          marginLeft: '0.5rem'
+                        }}>
+                          (commander colors)
+                        </span>
+                      </>
+                    ) : (
+                      // Show manual color selection when no commander is chosen
+                      <>
+                        {colorOptions.map(color => (
+                          <button
+                            key={color.code}
+                            onClick={() => toggleColor(player.id, color.code)}
+                            style={{
+                              width: '2rem',
+                              height: '2rem',
+                              borderRadius: '50%',
+                              border: player.colors?.includes(color.code) 
+                                ? '3px solid #2d3748' 
+                                : `2px solid ${darkMode ? '#4a5568' : '#cbd5e0'}`,
+                              cursor: 'pointer',
+                              transform: player.colors?.includes(color.code) ? 'scale(1.1)' : 'scale(1)',
+                              transition: 'transform 0.2s',
+                              padding: '0',
+                              overflow: 'hidden',
+                              backgroundImage: `url(${color.image})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
+                            title={color.name}
+                          />
+                        ))}
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          color: darkMode ? '#a0aec0' : '#718096',
+                          marginLeft: '0.5rem'
+                        }}>
+                          (manual selection)
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
