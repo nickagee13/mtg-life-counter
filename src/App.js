@@ -177,7 +177,12 @@ const MTGCommanderTracker = () => {
   const handleCommanderChange = (playerId, value) => {
     updatePlayer(playerId, 'commander', value);
     
-    if (value.length >= 2) {
+    // Only trigger search if the current value doesn't match a full commander name
+    // This prevents search from triggering when the full name is already selected
+    const player = players.find(p => p.id === playerId);
+    const hasFullCommanderName = player && player.commander && player.commander === value && player.colors && player.colors.length > 0;
+    
+    if (value.length >= 2 && !hasFullCommanderName) {
       debouncedSearch(value, playerId);
     } else {
       setSearchResults(prev => ({ ...prev, [playerId]: [] }));
@@ -625,8 +630,33 @@ const endGame = async () => {
                       </div>
                     )}
                     
+                    {/* Clear commander button when commander is selected */}
+                    {player.commander && player.colors && player.colors.length > 0 && (
+                      <button
+                        onClick={() => {
+                          updatePlayer(player.id, 'commander', '');
+                          updatePlayer(player.id, 'colors', []);
+                        }}
+                        style={{
+                          position: 'absolute',
+                          right: '0.5rem',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: darkMode ? '#a0aec0' : '#718096',
+                          cursor: 'pointer',
+                          padding: '0.25rem',
+                          borderRadius: '0.25rem'
+                        }}
+                        title="Clear commander selection"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                    
                     {/* Search results dropdown */}
-                    {searchResults[player.id] && searchResults[player.id].length > 0 && (
+                    {searchResults[player.id] && searchResults[player.id].length > 0 && !(player.commander && player.colors && player.colors.length > 0) && (
                       <div style={{
                         position: 'absolute',
                         top: '100%',
