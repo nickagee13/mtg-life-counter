@@ -88,6 +88,7 @@ const MTGCommanderTracker = () => {
   const [lifeChanges, setLifeChanges] = useState({}); // Track recent life changes for animation
   const [searchResults, setSearchResults] = useState({}); // Store search results for each player
   const [searchLoading, setSearchLoading] = useState({}); // Track loading state for each player
+  const [failedImages, setFailedImages] = useState(new Set()); // Track failed commander images
 
   // Timer effect
   useEffect(() => {
@@ -112,6 +113,23 @@ const MTGCommanderTracker = () => {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  // Preload commander images and handle failures
+  useEffect(() => {
+    players.forEach(player => {
+      if (player.commanderImage && !failedImages.has(player.commanderImage)) {
+        const img = new Image();
+        img.onload = () => {
+          // Image loaded successfully, no action needed
+        };
+        img.onerror = () => {
+          // Image failed to load, add to failed set
+          setFailedImages(prev => new Set([...prev, player.commanderImage]));
+        };
+        img.src = player.commanderImage;
+      }
+    });
+  }, [players, failedImages]);
 
   // Format time display
   const formatTime = (seconds) => {
@@ -154,6 +172,7 @@ const MTGCommanderTracker = () => {
           type_line: card.type_line,
           set_name: card.set_name,
           image_small: card.image_uris?.small || null,
+          image_background: card.image_uris?.border_crop || card.image_uris?.normal || null,
           color_identity: card.color_identity || []
         }));
         setSearchResults(prev => ({ ...prev, [playerId]: commanders }));
@@ -192,10 +211,15 @@ const MTGCommanderTracker = () => {
   // Select commander from search results
   const selectCommander = (playerId, commander) => {
     console.log('Selecting commander:', commander.name); // Debug log
-    // Update both commander name and colors together
+    // Update commander name, colors, and background image together
     setPlayers(players.map(p => 
       p.id === playerId 
-        ? { ...p, commander: commander.name, colors: commander.color_identity }
+        ? { 
+            ...p, 
+            commander: commander.name, 
+            colors: commander.color_identity,
+            commanderImage: commander.image_background
+          }
         : p
     ));
     setSearchResults(prev => ({ ...prev, [playerId]: [] }));
@@ -208,6 +232,7 @@ const MTGCommanderTracker = () => {
       name: `Player ${players.length + 1}`,
       commander: '',
       colors: [],
+      commanderImage: null,
       life: 40,
       eliminated: false,
       eliminatedTurn: null
@@ -651,6 +676,7 @@ const endGame = async () => {
                         onClick={() => {
                           updatePlayer(player.id, 'commander', '');
                           updatePlayer(player.id, 'colors', []);
+                          updatePlayer(player.id, 'commanderImage', null);
                           // Focus the input and position cursor at start
                           const input = document.querySelector(`input[data-player-id="${player.id}"]`);
                           if (input) {
@@ -979,14 +1005,34 @@ const endGame = async () => {
             {players.map((player, index) => {
               const isActive = index === activePlayerIndex;
               
-              // Original gradients from screenshots
-              const getOriginalGradient = (playerIndex, playerName) => {
-                // Check if this is Nick (yellow-blue gradient) or Gino (green gradient)
-                if (playerName.toLowerCase().includes('nick')) {
-                  return 'linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%)'; // Yellow to Blue
-                } else {
-                  return 'linear-gradient(135deg, #10b981 0%, #059669 50%, #1e40af 100%)'; // Green gradient
+              // Get background style with commander image or fallback gradient
+              const getPlayerBackground = (player, playerIndex) => {
+                // Fallback gradient based on player name
+                const getFallbackGradient = (playerName) => {
+                  if (playerName.toLowerCase().includes('nick')) {
+                    return 'linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%)'; // Yellow to Blue
+                  } else {
+                    return 'linear-gradient(135deg, #10b981 0%, #059669 50%, #1e40af 100%)'; // Green gradient
+                  }
+                };
+
+                // If player has commander image and it hasn't failed, use it with overlay
+                if (player.commanderImage && !failedImages.has(player.commanderImage)) {
+                  return {
+                    backgroundImage: `
+                      linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%),
+                      url(${player.commanderImage})
+                    `,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundBlendMode: 'multiply'
+                  };
                 }
+
+                // Fallback to original gradient
+                return {
+                  background: getFallbackGradient(player.name)
+                };
               };
               
               return (
@@ -998,7 +1044,7 @@ const endGame = async () => {
                     padding: '2rem 1.5rem',
                     position: 'relative',
                     color: 'white',
-                    background: getOriginalGradient(index, player.name),
+                    ...getPlayerBackground(player, index),
                     opacity: player.eliminated ? 0.6 : 1,
                     minHeight: '12rem',
                     display: 'flex',
@@ -1041,7 +1087,8 @@ const endGame = async () => {
                     marginBottom: '1rem', 
                     textTransform: 'uppercase',
                     textAlign: 'center',
-                    fontFamily: "'Windsor BT', serif"
+                    fontFamily: "'Windsor BT', serif",
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.4)'
                   }}>
                     {player.name}
                   </div>
@@ -1054,7 +1101,8 @@ const endGame = async () => {
                     textAlign: 'center',
                     marginBottom: '1.5rem',
                     position: 'relative',
-                    fontFamily: "'Windsor BT', serif"
+                    fontFamily: "'Windsor BT', serif",
+                    textShadow: '3px 3px 6px rgba(0,0,0,0.8), 0 0 12px rgba(0,0,0,0.4)'
                   }}>
                     {player.life}
                     
