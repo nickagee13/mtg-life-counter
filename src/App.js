@@ -191,8 +191,13 @@ const MTGCommanderTracker = () => {
 
   // Select commander from search results
   const selectCommander = (playerId, commander) => {
-    updatePlayer(playerId, 'commander', commander.name);
-    updatePlayer(playerId, 'colors', commander.color_identity);
+    console.log('Selecting commander:', commander.name); // Debug log
+    // Update both commander name and colors together
+    setPlayers(players.map(p => 
+      p.id === playerId 
+        ? { ...p, commander: commander.name, colors: commander.color_identity }
+        : p
+    ));
     setSearchResults(prev => ({ ...prev, [playerId]: [] }));
   };
 
@@ -604,12 +609,14 @@ const endGame = async () => {
                       data-player-id={player.id}
                       value={player.commander || ''}
                       onChange={(e) => {
-                        // If commander is fully selected (has colors), don't trigger search
+                        // If commander is fully selected (has colors), make input read-only
                         if (player.colors && player.colors.length > 0) {
-                          return;
+                          e.preventDefault();
+                          return false;
                         }
                         handleCommanderChange(player.id, e.target.value);
                       }}
+                      readOnly={player.colors && player.colors.length > 0}
                       style={{
                         width: '100%',
                         fontSize: '0.875rem',
