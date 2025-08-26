@@ -391,26 +391,26 @@ const endGame = async () => {
               padding: '1.5rem',
               textAlign: 'center'
             }}>
-              <h1 style={{ 
-                fontSize: '2rem', 
-                fontWeight: 'bold', 
-                margin: '0 0 0.5rem 0',
-                letterSpacing: '0.05em',
-                fontFamily: "'Windsor BT', serif",
-                color: 'black'
-              }}>
-                COMMANDER TRACKER
-              </h1>
               <img 
                 src={hotchiMotchiLogo} 
                 alt="Hotchi Motchi" 
                 style={{ 
-                  height: '2rem', 
+                  height: '3rem', 
                   objectFit: 'contain',
-                  margin: 0,
+                  margin: '0 auto 0.75rem auto',
                   display: 'block'
                 }} 
               />
+              <h1 style={{ 
+                fontSize: '1.75rem', 
+                fontWeight: 'bold', 
+                margin: '0',
+                letterSpacing: '0.05em',
+                fontFamily: "'Windsor BT', serif",
+                color: 'black'
+              }}>
+                LIFE TRACKER
+              </h1>
             </div>
             
             {/* Player setup area */}
@@ -456,7 +456,7 @@ const endGame = async () => {
                       value={player.name}
                       onChange={(e) => updatePlayer(player.id, 'name', e.target.value)}
                       style={{
-                        fontSize: '1.25rem',
+                        fontSize: '1.375rem',
                         fontWeight: '600',
                         backgroundColor: 'transparent',
                         border: 'none',
