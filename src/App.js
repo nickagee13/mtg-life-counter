@@ -86,7 +86,6 @@ const MTGCommanderTracker = () => {
   const [firstPlayerRoll, setFirstPlayerRoll] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
   const [lifeChanges, setLifeChanges] = useState({}); // Track recent life changes for animation
-  const [commanderSearch, setCommanderSearch] = useState({}); // Track search state for each player
   const [searchResults, setSearchResults] = useState({}); // Store search results for each player
   const [searchLoading, setSearchLoading] = useState({}); // Track loading state for each player
 
@@ -169,12 +168,13 @@ const MTGCommanderTracker = () => {
   };
 
   // Debounced search function
-  const debouncedSearch = React.useCallback(debounce(searchCommanders, 300), []);
+  const debouncedSearch = React.useCallback((query, playerId) => {
+    debounce(searchCommanders, 300)(query, playerId);
+  }, []);
 
   // Handle commander input change
   const handleCommanderChange = (playerId, value) => {
     updatePlayer(playerId, 'commander', value);
-    setCommanderSearch(prev => ({ ...prev, [playerId]: value }));
     
     if (value.length >= 2) {
       debouncedSearch(value, playerId);
@@ -186,7 +186,6 @@ const MTGCommanderTracker = () => {
   // Select commander from search results
   const selectCommander = (playerId, commanderName) => {
     updatePlayer(playerId, 'commander', commanderName);
-    setCommanderSearch(prev => ({ ...prev, [playerId]: commanderName }));
     setSearchResults(prev => ({ ...prev, [playerId]: [] }));
   };
 
