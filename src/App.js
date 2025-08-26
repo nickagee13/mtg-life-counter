@@ -501,6 +501,103 @@ const endGame = async () => {
     updatePlayer(playerId, 'colors', newColors);
   };
 
+  // Layout helper functions
+  const getLayoutStyles = (layout, playerCount) => {
+    if (playerCount === 2) {
+      return {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '0.5rem'
+      };
+    }
+    
+    if (playerCount === 3) {
+      return {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gridTemplateRows: '1fr 1fr',
+        gap: '0.5rem'
+      };
+    }
+    
+    if (playerCount === 4) {
+      switch (layout) {
+        case '4-grid':
+          return {
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gridTemplateRows: '1fr 1fr',
+            gap: '0.5rem'
+          };
+        case '4-vertical':
+          return {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+          };
+        default:
+          return {
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gridTemplateRows: '1fr 1fr',
+            gap: '0.5rem'
+          };
+      }
+    }
+    
+    return {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '0.5rem'
+    };
+  };
+
+  const getPlayerCardStyle = (layout, playerCount, playerIndex) => {
+    if (playerCount === 2) {
+      return {
+        flex: '1',
+        padding: '1rem',
+        height: '100%'
+      };
+    }
+    
+    if (playerCount === 3) {
+      // First player takes full width top, other two split bottom
+      if (playerIndex === 0) {
+        return {
+          gridColumn: '1 / -1',
+          padding: '0.75rem',
+          height: '100%'
+        };
+      }
+      return {
+        padding: '0.75rem',
+        height: '100%'
+      };
+    }
+    
+    if (playerCount === 4) {
+      if (layout === '4-vertical') {
+        return {
+          flex: '1',
+          padding: '0.5rem',
+          height: '100%'
+        };
+      }
+      // Default grid layout
+      return {
+        padding: '0.75rem',
+        height: '100%'
+      };
+    }
+    
+    return {
+      flex: '1',
+      padding: '1rem',
+      height: '100%'
+    };
+  };
+
   // Updated styles to match mockup - dark navy background
 
   // Render game setup screen
@@ -1177,11 +1274,12 @@ const endGame = async () => {
       <div style={{ 
         minHeight: '100vh', 
         backgroundColor: darkMode ? '#2d3748' : '#f7fafc', 
-        padding: '0.5rem' 
+        padding: '0.25rem',
+        overflow: 'hidden' 
       }}>
-        <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '0 0.5rem' }}>
+        <div style={{ maxWidth: '48rem', margin: '0 auto', height: '100vh', display: 'flex', flexDirection: 'column' }}>
           {/* Dark mode toggle */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem', flex: 'none' }}>
             <button
               onClick={() => setDarkMode(!darkMode)}
               style={{
@@ -1201,12 +1299,13 @@ const endGame = async () => {
           <div style={{ 
             backgroundColor: darkMode ? '#1a202c' : 'white',
             borderRadius: '1rem 1rem 0 0',
-            padding: '1rem 1.5rem',
+            padding: '0.75rem 1rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             color: darkMode ? 'white' : '#2d3748',
-            boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+            boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)',
+            flex: 'none'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <span style={{ 
@@ -1257,11 +1356,10 @@ const endGame = async () => {
           {/* Player Grid */}
           <div style={{ 
             backgroundColor: darkMode ? '#1a202c' : 'white',
-            padding: '0.75rem',
-            display: 'flex',
-            gap: players.length <= 2 ? '1rem' : '0.5rem',
-            flexWrap: players.length > 2 ? 'wrap' : 'nowrap',
-            boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+            padding: '0.5rem',
+            flex: '1',
+            boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)',
+            ...getLayoutStyles(selectedLayout, players.length)
           }}>
             {players.map((player, index) => {
               const isActive = index === activePlayerIndex;
@@ -1299,14 +1397,12 @@ const endGame = async () => {
                 <div
                   key={player.id}
                   style={{
-                    flex: players.length <= 2 ? '1 1 0%' : players.length === 3 ? '1 1 calc(50% - 0.25rem)' : '1 1 calc(50% - 0.25rem)',
+                    ...getPlayerCardStyle(selectedLayout, players.length, index),
                     borderRadius: '1rem',
-                    padding: players.length <= 2 ? '2rem 1.5rem' : '1.5rem 1rem',
                     position: 'relative',
                     color: 'white',
                     ...getPlayerBackground(player, index),
                     opacity: player.eliminated ? 0.6 : 1,
-                    minHeight: players.length <= 2 ? '12rem' : '10rem',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
