@@ -401,14 +401,14 @@ const endGame = async () => {
                   console.log('Logo loaded successfully');
                 }}
                 style={{ 
-                  height: '10rem', 
+                  height: '12rem', 
                   objectFit: 'contain',
-                  margin: '0 auto 0.75rem auto',
+                  margin: '0 auto 0.25rem auto',
                   display: 'block'
                 }} 
               />
               <h1 style={{ 
-                fontSize: '1.75rem', 
+                fontSize: '2.25rem', 
                 fontWeight: 'bold', 
                 margin: '0',
                 letterSpacing: '0.05em',
