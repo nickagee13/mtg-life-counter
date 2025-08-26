@@ -86,6 +86,9 @@ const MTGCommanderTracker = () => {
   const [firstPlayerRoll, setFirstPlayerRoll] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
   const [lifeChanges, setLifeChanges] = useState({}); // Track recent life changes for animation
+  const [commanderSearch, setCommanderSearch] = useState({}); // Track search state for each player
+  const [searchResults, setSearchResults] = useState({}); // Store search results for each player
+  const [searchLoading, setSearchLoading] = useState({}); // Track loading state for each player
 
   // Timer effect
   useEffect(() => {
@@ -98,11 +101,93 @@ const MTGCommanderTracker = () => {
     return () => clearInterval(interval);
   }, [gameState, gameStartTime]);
 
+  // Close search dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const isInsideAutocomplete = event.target.closest('[data-autocomplete]');
+      if (!isInsideAutocomplete) {
+        setSearchResults({});
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   // Format time display
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Debounce function for search
+  const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
+
+  // Search for commanders using Scryfall API
+  const searchCommanders = async (query, playerId) => {
+    if (!query || query.length < 2) {
+      setSearchResults(prev => ({ ...prev, [playerId]: [] }));
+      return;
+    }
+
+    setSearchLoading(prev => ({ ...prev, [playerId]: true }));
+
+    try {
+      const encodedQuery = encodeURIComponent(`type:legendary type:creature name:"${query}"`);
+      const response = await fetch(`https://api.scryfall.com/cards/search?q=${encodedQuery}&unique=cards&order=name&dir=asc`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const commanders = data.data.slice(0, 10).map(card => ({
+          name: card.name,
+          mana_cost: card.mana_cost || '',
+          type_line: card.type_line,
+          set_name: card.set_name,
+          image_small: card.image_uris?.small || null
+        }));
+        setSearchResults(prev => ({ ...prev, [playerId]: commanders }));
+      } else {
+        setSearchResults(prev => ({ ...prev, [playerId]: [] }));
+      }
+    } catch (error) {
+      console.error('Error searching commanders:', error);
+      setSearchResults(prev => ({ ...prev, [playerId]: [] }));
+    }
+
+    setSearchLoading(prev => ({ ...prev, [playerId]: false }));
+  };
+
+  // Debounced search function
+  const debouncedSearch = React.useCallback(debounce(searchCommanders, 300), []);
+
+  // Handle commander input change
+  const handleCommanderChange = (playerId, value) => {
+    updatePlayer(playerId, 'commander', value);
+    setCommanderSearch(prev => ({ ...prev, [playerId]: value }));
+    
+    if (value.length >= 2) {
+      debouncedSearch(value, playerId);
+    } else {
+      setSearchResults(prev => ({ ...prev, [playerId]: [] }));
+    }
+  };
+
+  // Select commander from search results
+  const selectCommander = (playerId, commanderName) => {
+    updatePlayer(playerId, 'commander', commanderName);
+    setCommanderSearch(prev => ({ ...prev, [playerId]: commanderName }));
+    setSearchResults(prev => ({ ...prev, [playerId]: [] }));
   };
 
   // Add new player
@@ -500,23 +585,92 @@ const endGame = async () => {
                     </button>
                   </div>
                   
-                  <input
-                    type="text"
-                    value={player.commander}
-                    onChange={(e) => updatePlayer(player.id, 'commander', e.target.value)}
-                    style={{
-                      width: '100%',
-                      fontSize: '0.875rem',
-                      backgroundColor: darkMode ? '#1a202c' : '#edf2f7',
-                      color: darkMode ? '#cbd5e0' : '#4a5568',
-                      border: `1px solid ${darkMode ? '#2d3748' : '#e2e8f0'}`,
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem',
-                      marginBottom: '0.75rem',
-                      outline: 'none'
-                    }}
-                    placeholder="Commander name"
-                  />
+                  <div data-autocomplete style={{ position: 'relative', marginBottom: '0.75rem' }}>
+                    <input
+                      type="text"
+                      value={player.commander}
+                      onChange={(e) => handleCommanderChange(player.id, e.target.value)}
+                      style={{
+                        width: '100%',
+                        fontSize: '0.875rem',
+                        backgroundColor: darkMode ? '#1a202c' : '#edf2f7',
+                        color: darkMode ? '#cbd5e0' : '#4a5568',
+                        border: `1px solid ${darkMode ? '#2d3748' : '#e2e8f0'}`,
+                        borderRadius: '0.375rem',
+                        padding: '0.5rem',
+                        outline: 'none'
+                      }}
+                      placeholder="Search for commander..."
+                    />
+                    
+                    {/* Loading indicator */}
+                    {searchLoading[player.id] && (
+                      <div style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: darkMode ? '#a0aec0' : '#718096',
+                        fontSize: '0.75rem'
+                      }}>
+                        Searching...
+                      </div>
+                    )}
+                    
+                    {/* Search results dropdown */}
+                    {searchResults[player.id] && searchResults[player.id].length > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: '0',
+                        right: '0',
+                        zIndex: 1000,
+                        backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+                        border: `1px solid ${darkMode ? '#2d3748' : '#e2e8f0'}`,
+                        borderRadius: '0.375rem',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        maxHeight: '200px',
+                        overflowY: 'auto'
+                      }}>
+                        {searchResults[player.id].map((commander, index) => (
+                          <div
+                            key={`${commander.name}-${index}`}
+                            onClick={() => selectCommander(player.id, commander.name)}
+                            style={{
+                              padding: '0.5rem 0.75rem',
+                              cursor: 'pointer',
+                              borderBottom: index < searchResults[player.id].length - 1 
+                                ? `1px solid ${darkMode ? '#2d3748' : '#e2e8f0'}` 
+                                : 'none',
+                              backgroundColor: 'transparent',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = darkMode ? '#2d3748' : '#f7fafc';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <div style={{
+                              fontWeight: '600',
+                              color: darkMode ? '#e2e8f0' : '#2d3748',
+                              fontSize: '0.875rem'
+                            }}>
+                              {commander.name}
+                            </div>
+                            <div style={{
+                              fontSize: '0.75rem',
+                              color: darkMode ? '#a0aec0' : '#718096',
+                              marginTop: '0.125rem'
+                            }}>
+                              {commander.type_line} • {commander.set_name}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {colorOptions.map(color => (
