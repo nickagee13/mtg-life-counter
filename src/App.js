@@ -9,7 +9,6 @@ import blueImage from './assets/images/blue.jpeg';
 import blackImage from './assets/images/black.jpeg';
 import redImage from './assets/images/red.png';
 import greenImage from './assets/images/green.png';
-import hotchiMotchiLogo from './assets/images/hotchi-motchi-logo.png';
 
 const MTGCommanderTracker = () => {
   // Add CSS for life change animation and MTG-style fonts
@@ -392,8 +391,15 @@ const endGame = async () => {
               textAlign: 'center'
             }}>
               <img 
-                src={hotchiMotchiLogo} 
+                src="/hotchi-motchi-logo.png" 
                 alt="Hotchi Motchi" 
+                onError={(e) => {
+                  console.error('Logo failed to load:', e);
+                  e.target.style.display = 'none';
+                }}
+                onLoad={(e) => {
+                  console.log('Logo loaded successfully');
+                }}
                 style={{ 
                   height: '3rem', 
                   objectFit: 'contain',
