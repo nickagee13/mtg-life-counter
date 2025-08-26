@@ -172,7 +172,7 @@ const MTGCommanderTracker = () => {
           type_line: card.type_line,
           set_name: card.set_name,
           image_small: card.image_uris?.small || null,
-          image_background: card.image_uris?.border_crop || card.image_uris?.normal || null,
+          image_background: card.image_uris?.art_crop || card.image_uris?.border_crop || card.image_uris?.normal || null,
           color_identity: card.color_identity || []
         }));
         setSearchResults(prev => ({ ...prev, [playerId]: commanders }));
@@ -481,8 +481,6 @@ const endGame = async () => {
   };
 
   // Updated styles to match mockup - dark navy background
-  const containerBg = 'bg-slate-800'; // Slightly lighter for containers
-  const cardText = 'text-white'; // Always white text for contrast
 
   // Render game setup screen
   if (gameState === 'setup') {
@@ -1020,12 +1018,11 @@ const endGame = async () => {
                 if (player.commanderImage && !failedImages.has(player.commanderImage)) {
                   return {
                     backgroundImage: `
-                      linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%),
+                      linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%),
                       url(${player.commanderImage})
                     `,
                     backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundBlendMode: 'multiply'
+                    backgroundPosition: 'center'
                   };
                 }
 
@@ -1207,16 +1204,50 @@ const endGame = async () => {
           
           {/* Commander Damage Matrix */}
           {showCommanderDamage && (
-            <div className={`${containerBg} ${cardText} shadow-2xl p-4`}>
-              <h3 className="font-bold mb-3 text-lg">COMMANDER DAMAGE TRACKER</h3>
+            <div style={{ 
+              backgroundColor: darkMode ? '#1a202c' : 'white',
+              borderRadius: '0 0 1rem 1rem',
+              padding: '1.5rem',
+              color: darkMode ? 'white' : '#2d3748',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h3 style={{ 
+                fontWeight: 'bold', 
+                marginBottom: '1rem', 
+                fontSize: '1.125rem',
+                fontFamily: "'Windsor BT', serif",
+                letterSpacing: '0.05em'
+              }}>
+                COMMANDER DAMAGE TRACKER
+              </h3>
               
               {!selectedDamageDealer ? (
-                <div className="grid grid-cols-2 gap-2">
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr 1fr', 
+                  gap: '0.75rem' 
+                }}>
                   {players.filter(p => !p.eliminated).map(dealer => (
                     <button
                       key={dealer.id}
                       onClick={() => setSelectedDamageDealer(dealer.id)}
-                      className="p-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-semibold"
+                      style={{
+                        padding: '1rem',
+                        background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
+                        color: 'white',
+                        borderRadius: '0.75rem',
+                        fontWeight: 'bold',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: "'Windsor BT', serif",
+                        fontSize: '1rem',
+                        letterSpacing: '0.025em',
+                        transition: 'transform 0.1s',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                      }}
+                      onMouseDown={(e) => e.target.style.transform = 'scale(0.98)'}
+                      onMouseUp={(e) => e.target.style.transform = 'scale(1)'}
+                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                     >
                       {dealer.name}'s Damage →
                     </button>
@@ -1226,37 +1257,92 @@ const endGame = async () => {
                 <div>
                   <button
                     onClick={() => setSelectedDamageDealer(null)}
-                    className="mb-3 text-sm text-gray-300 hover:text-white"
+                    style={{
+                      marginBottom: '1rem',
+                      fontSize: '0.875rem',
+                      color: darkMode ? '#a0aec0' : '#718096',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontFamily: "'Windsor BT', serif"
+                    }}
                   >
                     ← Back
                   </button>
                   
-                  <div className="space-y-2">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {players.filter(p => p.id !== selectedDamageDealer && !p.eliminated).map(receiver => {
                       const damage = commanderDamage[selectedDamageDealer]?.[receiver.id] || 0;
                       
                       return (
-                        <div key={receiver.id} className="flex items-center gap-3">
-                          <span className="text-sm font-medium w-24">
+                        <div key={receiver.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                          <span style={{ 
+                            fontSize: '1rem', 
+                            fontWeight: '600', 
+                            width: '6rem',
+                            fontFamily: "'Windsor BT', serif"
+                          }}>
                             → {receiver.name}
                           </span>
-                          <div className="flex items-center gap-2">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <button
                               onClick={() => updateCommanderDamage(selectedDamageDealer, receiver.id, damage - 1)}
-                              className="w-8 h-8 bg-red-600 hover:bg-red-700 rounded text-white"
+                              style={{
+                                width: '2.5rem',
+                                height: '2.5rem',
+                                backgroundColor: '#dc2626',
+                                color: 'white',
+                                borderRadius: '0.5rem',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                fontSize: '1.25rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
                             >
-                              -
+                              −
                             </button>
-                            <span className={`w-12 text-center font-bold ${damage >= 21 ? 'text-red-400' : 'text-white'}`}>
+                            <span style={{ 
+                              width: '3rem', 
+                              textAlign: 'center', 
+                              fontWeight: 'bold',
+                              fontSize: '1.25rem',
+                              color: damage >= 21 ? '#ef4444' : (darkMode ? 'white' : '#2d3748'),
+                              fontFamily: "'Windsor BT', serif"
+                            }}>
                               {damage}
                             </span>
                             <button
                               onClick={() => updateCommanderDamage(selectedDamageDealer, receiver.id, damage + 1)}
-                              className="w-8 h-8 bg-green-600 hover:bg-green-700 rounded text-white"
+                              style={{
+                                width: '2.5rem',
+                                height: '2.5rem',
+                                backgroundColor: '#16a34a',
+                                color: 'white',
+                                borderRadius: '0.5rem',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                fontSize: '1.25rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
                             >
                               +
                             </button>
-                            {damage >= 21 && <span className="text-red-400 text-sm font-bold">LETHAL!</span>}
+                            {damage >= 21 && (
+                              <span style={{ 
+                                color: '#ef4444', 
+                                fontSize: '0.875rem', 
+                                fontWeight: 'bold',
+                                fontFamily: "'Windsor BT', serif"
+                              }}>
+                                LETHAL!
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
