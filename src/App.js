@@ -350,7 +350,6 @@ const endGame = async () => {
   };
 
   // Updated styles to match mockup - dark navy background
-  const bgStyle = 'bg-gray-900'; // Solid dark navy background
   const containerBg = 'bg-slate-800'; // Slightly lighter for containers
   const cardText = 'text-white'; // Always white text for contrast
 
