@@ -601,8 +601,15 @@ const endGame = async () => {
                   <div data-autocomplete style={{ position: 'relative', marginBottom: '0.75rem' }}>
                     <input
                       type="text"
-                      value={player.commander}
-                      onChange={(e) => handleCommanderChange(player.id, e.target.value)}
+                      data-player-id={player.id}
+                      value={player.commander || ''}
+                      onChange={(e) => {
+                        // If commander is fully selected (has colors), don't trigger search
+                        if (player.colors && player.colors.length > 0) {
+                          return;
+                        }
+                        handleCommanderChange(player.id, e.target.value);
+                      }}
                       style={{
                         width: '100%',
                         fontSize: '0.875rem',
@@ -611,7 +618,8 @@ const endGame = async () => {
                         border: `1px solid ${darkMode ? '#2d3748' : '#e2e8f0'}`,
                         borderRadius: '0.375rem',
                         padding: '0.5rem',
-                        outline: 'none'
+                        outline: 'none',
+                        textTransform: 'none'
                       }}
                       placeholder="Search for commander..."
                     />
@@ -636,6 +644,14 @@ const endGame = async () => {
                         onClick={() => {
                           updatePlayer(player.id, 'commander', '');
                           updatePlayer(player.id, 'colors', []);
+                          // Focus the input and position cursor at start
+                          const input = document.querySelector(`input[data-player-id="${player.id}"]`);
+                          if (input) {
+                            setTimeout(() => {
+                              input.focus();
+                              input.setSelectionRange(0, 0);
+                            }, 0);
+                          }
                         }}
                         style={{
                           position: 'absolute',
