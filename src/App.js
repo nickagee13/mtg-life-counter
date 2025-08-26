@@ -72,8 +72,9 @@ const MTGCommanderTracker = () => {
     return () => document.head.removeChild(style);
   }, []);
 
-  // Game states: 'setup', 'playing', 'finished'
+  // Game states: 'setup', 'layout', 'playing', 'finished'
   const [gameState, setGameState] = useState('setup');
+  const [selectedLayout, setSelectedLayout] = useState(null);
   const [players, setPlayers] = useState([]);
   const [currentTurn, setCurrentTurn] = useState(1);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
@@ -173,7 +174,9 @@ const MTGCommanderTracker = () => {
           set_name: card.set_name,
           image_small: card.image_uris?.small || null,
           image_background: card.image_uris?.art_crop || card.image_uris?.border_crop || card.image_uris?.normal || null,
-          color_identity: card.color_identity || []
+          color_identity: card.color_identity || [],
+          oracle_text: card.oracle_text || '',
+          keywords: card.keywords || []
         }));
         setSearchResults(prev => ({ ...prev, [playerId]: commanders }));
       } else {
@@ -218,7 +221,9 @@ const MTGCommanderTracker = () => {
             ...p, 
             commander: commander.name, 
             colors: commander.color_identity,
-            commanderImage: commander.image_background
+            commanderImage: commander.image_background,
+            commanderText: commander.oracle_text,
+            commanderKeywords: commander.keywords
           }
         : p
     ));
@@ -233,6 +238,8 @@ const MTGCommanderTracker = () => {
       commander: '',
       colors: [],
       commanderImage: null,
+      commanderText: '',
+      commanderKeywords: [],
       life: 40,
       eliminated: false,
       eliminatedTurn: null
@@ -275,13 +282,17 @@ const MTGCommanderTracker = () => {
     }, 100);
   };
 
-  // Start the game
+  // Go to layout selection
   const startGame = () => {
     if (players.length < 1) {
       alert('Need at least 1 player to start!');
       return;
     }
-    
+    setGameState('layout');
+  };
+
+  // Actually start the game with selected layout
+  const startGameWithLayout = () => {
     // Initialize commander damage tracking
     const damageMatrix = {};
     players.forEach(dealer => {
@@ -458,6 +469,7 @@ const endGame = async () => {
     setCommanderDamage({});
     setShowCommanderDamage(false);
     setFirstPlayerRoll(null);
+    setSelectedLayout(null);
     setLifeChanges({}); // Clear any life change animations
   };
 
@@ -675,6 +687,8 @@ const endGame = async () => {
                           updatePlayer(player.id, 'commander', '');
                           updatePlayer(player.id, 'colors', []);
                           updatePlayer(player.id, 'commanderImage', null);
+                          updatePlayer(player.id, 'commanderText', '');
+                          updatePlayer(player.id, 'commanderKeywords', []);
                           // Focus the input and position cursor at start
                           const input = document.querySelector(`input[data-player-id="${player.id}"]`);
                           if (input) {
@@ -822,6 +836,60 @@ const endGame = async () => {
                       </>
                     )}
                   </div>
+                  
+                  {/* Commander abilities display */}
+                  {player.commander && player.commanderText && (
+                    <div style={{ 
+                      marginTop: '0.75rem',
+                      padding: '0.75rem',
+                      backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
+                      borderRadius: '0.5rem',
+                      border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`
+                    }}>
+                      <div style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        color: darkMode ? '#cbd5e0' : '#4a5568',
+                        marginBottom: '0.375rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}>
+                        Abilities
+                      </div>
+                      <div style={{
+                        fontSize: '0.75rem',
+                        color: darkMode ? '#e2e8f0' : '#2d3748',
+                        lineHeight: '1.4',
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                        {player.commanderText}
+                      </div>
+                      {player.commanderKeywords && player.commanderKeywords.length > 0 && (
+                        <div style={{
+                          marginTop: '0.5rem',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '0.25rem'
+                        }}>
+                          {player.commanderKeywords.map((keyword, index) => (
+                            <span
+                              key={index}
+                              style={{
+                                fontSize: '0.625rem',
+                                padding: '0.125rem 0.375rem',
+                                backgroundColor: darkMode ? '#4a5568' : '#cbd5e0',
+                                color: darkMode ? '#e2e8f0' : '#2d3748',
+                                borderRadius: '0.25rem',
+                                fontWeight: '500'
+                              }}
+                            >
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
               
@@ -902,6 +970,207 @@ const endGame = async () => {
                 START GAME
                 <ChevronRight size={20} />
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render layout selection screen
+  if (gameState === 'layout') {
+    const getLayoutOptions = () => {
+      const count = players.length;
+      if (count === 2) {
+        return [
+          { 
+            id: '2-vertical', 
+            name: '2 Players - Side by Side',
+            description: 'Two vertical player cards side by side'
+          }
+        ];
+      } else if (count === 3) {
+        return [
+          { 
+            id: '3-triangle', 
+            name: '3 Players - Triangle',
+            description: 'Three players in triangular arrangement'
+          },
+          { 
+            id: '3-line', 
+            name: '3 Players - Line',
+            description: 'Three players in a horizontal line'
+          }
+        ];
+      } else if (count === 4) {
+        return [
+          { 
+            id: '4-grid', 
+            name: '4 Players - Grid',
+            description: '2x2 grid layout'
+          },
+          { 
+            id: '4-vertical', 
+            name: '4 Players - Vertical',
+            description: 'Two columns of two players each'
+          }
+        ];
+      } else {
+        return [
+          { 
+            id: 'default', 
+            name: 'Default Layout',
+            description: 'Standard horizontal layout'
+          }
+        ];
+      }
+    };
+
+    const layoutOptions = getLayoutOptions();
+
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
+        padding: '1rem'
+      }}>
+        <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
+          {/* Dark mode toggle */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              style={{
+                padding: '0.5rem',
+                borderRadius: '0.5rem',
+                backgroundColor: darkMode ? 'rgba(255, 193, 7, 0.2)' : 'rgba(45, 55, 72, 0.1)',
+                border: `2px solid ${darkMode ? '#ffc107' : '#2d3748'}`,
+                color: darkMode ? '#ffc107' : '#2d3748',
+                cursor: 'pointer'
+              }}
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </div>
+          
+          <div style={{
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}>
+            {/* Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)',
+              color: 'white',
+              padding: '1.5rem',
+              textAlign: 'center'
+            }}>
+              <h1 style={{ 
+                fontSize: '1.75rem', 
+                fontWeight: 'bold', 
+                margin: '0',
+                letterSpacing: '0.05em',
+                fontFamily: "'Matrix Bold', sans-serif",
+                color: 'black'
+              }}>
+                CHOOSE LAYOUT
+              </h1>
+              <p style={{
+                fontSize: '1rem',
+                margin: '0.5rem 0 0 0',
+                opacity: 0.9,
+                color: 'black'
+              }}>
+                Select how to arrange {players.length} player{players.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            
+            {/* Layout options */}
+            <div style={{
+              backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+              padding: '1.5rem',
+              color: darkMode ? '#e2e8f0' : '#2d3748'
+            }}>
+              {layoutOptions.map((layout) => (
+                <button
+                  key={layout.id}
+                  onClick={() => setSelectedLayout(layout.id)}
+                  style={{
+                    width: '100%',
+                    padding: '1.25rem',
+                    marginBottom: '1rem',
+                    backgroundColor: selectedLayout === layout.id 
+                      ? (darkMode ? '#4a5568' : '#e2e8f0')
+                      : (darkMode ? '#2d3748' : '#f7fafc'),
+                    border: selectedLayout === layout.id 
+                      ? '2px solid #ff6b35' 
+                      : `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
+                    borderRadius: '0.75rem',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: "'Windsor BT', serif",
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{
+                    fontSize: '1.125rem',
+                    fontWeight: 'bold',
+                    marginBottom: '0.5rem',
+                    color: darkMode ? '#e2e8f0' : '#2d3748'
+                  }}>
+                    {layout.name}
+                  </div>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: darkMode ? '#a0aec0' : '#718096'
+                  }}>
+                    {layout.description}
+                  </div>
+                </button>
+              ))}
+              
+              {/* Back and Continue buttons */}
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button
+                  onClick={() => setGameState('setup')}
+                  style={{
+                    flex: '1',
+                    padding: '0.75rem',
+                    backgroundColor: darkMode ? '#4a5568' : '#4a5568',
+                    color: 'white',
+                    borderRadius: '0.5rem',
+                    fontWeight: 'bold',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: "'Windsor BT', serif"
+                  }}
+                >
+                  BACK
+                </button>
+                <button
+                  onClick={startGameWithLayout}
+                  disabled={!selectedLayout}
+                  style={{
+                    flex: '2',
+                    padding: '0.75rem',
+                    background: selectedLayout
+                      ? 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)'
+                      : (darkMode ? '#4a5568' : '#a0aec0'),
+                    color: 'white',
+                    borderRadius: '0.5rem',
+                    fontWeight: 'bold',
+                    border: 'none',
+                    cursor: selectedLayout ? 'pointer' : 'not-allowed',
+                    fontFamily: "'Windsor BT', serif",
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  START GAME
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1218,7 +1487,7 @@ const endGame = async () => {
                 fontFamily: "'Windsor BT', serif",
                 letterSpacing: '0.05em'
               }}>
-                COMMANDER DAMAGE TRACKER
+                COMMANDER DAMAGE
               </h3>
               
               {!selectedDamageDealer ? (
