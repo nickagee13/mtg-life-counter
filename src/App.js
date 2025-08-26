@@ -401,7 +401,7 @@ const endGame = async () => {
                   console.log('Logo loaded successfully');
                 }}
                 style={{ 
-                  height: '3rem', 
+                  height: '5rem', 
                   objectFit: 'contain',
                   margin: '0 auto 0.75rem auto',
                   display: 'block'
