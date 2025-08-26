@@ -407,7 +407,8 @@ const endGame = async () => {
                 style={{ 
                   height: '2rem', 
                   objectFit: 'contain',
-                  margin: 0
+                  margin: 0,
+                  display: 'block'
                 }} 
               />
             </div>
