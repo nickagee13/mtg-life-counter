@@ -398,7 +398,7 @@ const endGame = async () => {
             <div style={{
               background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)',
               color: 'white',
-              padding: '1.5rem',
+              padding: '0.75rem 1.5rem',
               textAlign: 'center'
             }}>
               <img 
@@ -414,7 +414,7 @@ const endGame = async () => {
                 style={{ 
                   height: '12rem', 
                   objectFit: 'contain',
-                  margin: '0 auto 0.1rem auto',
+                  margin: '0 auto 0.05rem auto',
                   display: 'block'
                 }} 
               />
