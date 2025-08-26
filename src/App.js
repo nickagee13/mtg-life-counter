@@ -558,6 +558,12 @@ const endGame = async () => {
                       type="text"
                       value={player.name}
                       onChange={(e) => updatePlayer(player.id, 'name', e.target.value)}
+                      onFocus={(e) => {
+                        // Clear default "Player X" names when focused
+                        if (e.target.value.startsWith('Player ')) {
+                          updatePlayer(player.id, 'name', '');
+                        }
+                      }}
                       style={{
                         fontSize: '1.375rem',
                         fontWeight: '600',
@@ -567,7 +573,8 @@ const endGame = async () => {
                         color: darkMode ? '#e2e8f0' : '#2d3748',
                         outline: 'none',
                         paddingBottom: '0.25rem',
-                        fontFamily: "'Windsor BT', serif"
+                        fontFamily: "'Windsor BT', serif",
+                        textTransform: 'capitalize'
                       }}
                       placeholder="Player name"
                     />
@@ -708,13 +715,6 @@ const endGame = async () => {
                             Colorless commander
                           </span>
                         )}
-                        <span style={{ 
-                          fontSize: '0.75rem', 
-                          color: darkMode ? '#a0aec0' : '#718096',
-                          marginLeft: '0.5rem'
-                        }}>
-                          (commander colors)
-                        </span>
                       </>
                     ) : (
                       // Show manual color selection when no commander is chosen
