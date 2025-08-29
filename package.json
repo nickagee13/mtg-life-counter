@@ -1,5 +1,5 @@
 {
-  "name": "hotchi-motchi-mtg",
+  "name": "mtg-life-counter",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

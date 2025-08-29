@@ -638,32 +638,15 @@ const endGame = async () => {
               padding: '1rem 1.5rem 0.5rem 1.5rem',
               textAlign: 'center'
             }}>
-              <img 
-                src="/hotchi-motchi-logo.png" 
-                alt="Hotchi Motchi" 
-                onError={(e) => {
-                  console.error('Logo failed to load:', e);
-                  e.target.style.display = 'none';
-                }}
-                onLoad={(e) => {
-                  console.log('Logo loaded successfully');
-                }}
-                style={{ 
-                  height: '12rem', 
-                  objectFit: 'contain',
-                  margin: '0 auto 0.25rem auto',
-                  display: 'block'
-                }} 
-              />
               <h1 style={{ 
-                fontSize: '1.75rem', 
+                fontSize: '2.5rem', 
                 fontWeight: 'bold', 
-                margin: '0 0 0.5rem 0',
+                margin: '1rem 0 0.5rem 0',
                 letterSpacing: '0.05em',
                 fontFamily: "'Matrix Bold', sans-serif",
                 color: 'black'
               }}>
-                LIFE TRACKER
+                MTG LIFE COUNTER
               </h1>
             </div>
             
