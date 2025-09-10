@@ -1,70 +1,124 @@
-# Getting Started with Create React App
+# MTG Life Counter
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A responsive web application for tracking life totals and commander damage in Magic: The Gathering games. Built with React and Vite for optimal performance.
+
+![MTG Life Counter](https://img.shields.io/badge/Magic%20The%20Gathering-Life%20Counter-orange)
+![React](https://img.shields.io/badge/React-19.1.1-blue)
+![Vite](https://img.shields.io/badge/Vite-7.1.5-646CFF)
+
+## Features
+
+- 🧙‍♂️ **Player Setup** - Add up to 4 players with commander search via Scryfall API
+- 🎯 **Life Tracking** - Real-time life total tracking with animated changes
+- ⚔️ **Commander Damage** - Track 21-point commander damage between players
+- 📱 **Responsive Design** - Works seamlessly on mobile and desktop
+- 🌓 **Dark/Light Mode** - Toggle between themes
+- ⏱️ **Game Timer** - Track game duration
+- 💾 **Game History** - Save completed games to Supabase database
+- 🎲 **First Player** - Randomize who goes first
+- 🔍 **Card Search** - Integrated Scryfall API for accurate commander data
+
+## Tech Stack
+
+- **Frontend**: React 19.1.1 with Vite 7.1.5
+- **Backend**: Supabase (PostgreSQL database)
+- **Styling**: Custom CSS with responsive design
+- **Icons**: Lucide React
+- **API**: Scryfall API for Magic card data
+- **Fonts**: Custom MTG-themed typography
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/nickagee13/mtg-life-counter.git
+cd mtg-life-counter
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+Create a `.env.local` file in the root directory:
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+4. Start the development server:
+```bash
+npm run dev
+```
+
+The app will open at `http://localhost:3000` (or next available port).
 
 ## Available Scripts
 
-In the project directory, you can run:
+### `npm run dev`
+Starts the Vite development server with hot module replacement.
 
 ### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Alternative command to start the development server.
 
 ### `npm run build`
+Builds the app for production to the `build/` folder using Vite.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### `npm run preview`
+Preview the production build locally.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## How to Use
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Setup Players**: Add players (1-4) and search for their commanders
+2. **Choose Layout**: Select the best layout for your player count
+3. **Track Life**: Use +/- buttons to adjust life totals (right-click for ±5)
+4. **Commander Damage**: Click "DAMAGE" to track 21-point commander damage
+5. **End Game**: Game automatically ends when players are eliminated
 
-### `npm run eject`
+## Database Schema
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+The app uses Supabase with two main tables:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **games**: Stores game metadata (winner, duration, turns)
+- **players**: Stores player data for each game (name, commander, final life)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Deployment
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+This app is optimized for deployment on:
+- **Netlify** (recommended)
+- **Vercel** 
+- **GitHub Pages**
+- Any static hosting service
 
-## Learn More
+Build the project with `npm run build` and deploy the `build/` folder.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Contributing
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Code Splitting
+## License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+This project is open source and available under the MIT License.
 
-### Analyzing the Bundle Size
+## Acknowledgments
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- [Scryfall API](https://scryfall.com/docs/api) for Magic card data
+- [Supabase](https://supabase.com/) for backend services
+- [Lucide](https://lucide.dev/) for beautiful icons
+- [Vite](https://vitejs.dev/) for lightning-fast development
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Built with ❤️ for the Magic: The Gathering community
