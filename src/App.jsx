@@ -10,6 +10,9 @@ import blackImage from './assets/images/black.jpeg';
 import redImage from './assets/images/red.png';
 import greenImage from './assets/images/green.png';
 
+// Import font
+import matrixBoldFont from './Matrix-Bold.ttf';
+
 const MTGCommanderTracker = () => {
   // Add CSS for life change animation and MTG-style fonts
   React.useEffect(() => {
@@ -17,7 +20,7 @@ const MTGCommanderTracker = () => {
     style.textContent = `
       @font-face {
         font-family: 'Matrix Bold';
-        src: url('./Matrix-Bold.ttf') format('truetype');
+        src: url('${matrixBoldFont}') format('truetype');
         font-weight: bold;
         font-style: normal;
       }
