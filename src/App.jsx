@@ -14,6 +14,29 @@ import greenImage from './assets/images/green.png';
 import matrixBoldFont from './Matrix-Bold.ttf';
 
 const MTGCommanderTracker = () => {
+  // Prevent orientation-based layout changes
+  React.useEffect(() => {
+    // Add CSS to maintain static layouts regardless of device orientation
+    const orientationStyle = document.createElement('style');
+    orientationStyle.textContent = `
+      /* Ensure layouts stay static regardless of device orientation */
+      @media screen and (orientation: landscape) {
+        .mtg-container {
+          /* Layout stays the same even when device is rotated */
+        }
+      }
+      
+      @media screen and (orientation: portrait) {
+        .mtg-container {
+          /* Layout stays the same even when device is rotated */
+        }
+      }
+    `;
+    document.head.appendChild(orientationStyle);
+    
+    return () => document.head.removeChild(orientationStyle);
+  }, []);
+
   // Add CSS for life change animation and MTG-style fonts
   React.useEffect(() => {
     const style = document.createElement('style');
@@ -86,6 +109,9 @@ const MTGCommanderTracker = () => {
   const [commanderDamage, setCommanderDamage] = useState({});
   const [showCommanderDamage, setShowCommanderDamage] = useState(false);
   const [selectedDamageDealer, setSelectedDamageDealer] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [commanderDamageMode, setCommanderDamageMode] = useState(null); // null or player index
+  const [touchStart, setTouchStart] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [firstPlayerRoll, setFirstPlayerRoll] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
@@ -140,6 +166,63 @@ const MTGCommanderTracker = () => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const advanceToNextTurn = () => {
+    setActivePlayerIndex((prevIndex) => {
+      const nextIndex = (prevIndex + 1) % players.length;
+      if (nextIndex === 0) {
+        setCurrentTurn(prev => prev + 1);
+      }
+      return nextIndex;
+    });
+  };
+
+  // Touch/swipe handling for commander damage
+  const handleTouchStart = (e, playerId) => {
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY, playerId });
+  };
+
+  const handleTouchEnd = (e, playerId) => {
+    if (!touchStart) return;
+    
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    
+    // Check if it's a significant horizontal swipe (not vertical scroll)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      // Swipe detected - enter commander damage mode for this player
+      setCommanderDamageMode(playerId);
+    }
+    
+    setTouchStart(null);
+  };
+
+  // Commander damage functions
+  const getCommanderDamageFrom = (targetPlayerId, dealerPlayerId) => {
+    const key = `${targetPlayerId}-${dealerPlayerId}`;
+    return commanderDamage[key] || 0;
+  };
+
+  const updateCommanderDamage = (targetPlayerId, dealerPlayerId, amount) => {
+    const key = `${targetPlayerId}-${dealerPlayerId}`;
+    const newValue = Math.max(0, (commanderDamage[key] || 0) + amount);
+    
+    setCommanderDamage(prev => ({
+      ...prev,
+      [key]: newValue
+    }));
+    
+    // Check for lethal commander damage (21)
+    if (newValue >= 21) {
+      setPlayers(prevPlayers => prevPlayers.map(p => 
+        p.id === targetPlayerId 
+          ? { ...p, eliminated: true, eliminatedTurn: currentTurn }
+          : p
+      ));
+    }
   };
 
   // Debounce function for search
@@ -359,21 +442,6 @@ const MTGCommanderTracker = () => {
     }, 2000);
   };
 
-  // Update commander damage
-  const updateCommanderDamage = (dealerId, receiverId, damage) => {
-    const newDamage = { ...commanderDamage };
-    newDamage[dealerId][receiverId] = Math.max(0, damage);
-    setCommanderDamage(newDamage);
-    
-    // Check for lethal commander damage (21)
-    if (damage >= 21) {
-      setPlayers(players.map(p => 
-        p.id === receiverId 
-          ? { ...p, eliminated: true, eliminatedTurn: currentTurn }
-          : p
-      ));
-    }
-  };
 
   // Next turn
   const nextTurn = () => {
@@ -507,11 +575,22 @@ const endGame = async () => {
   // Layout helper functions
   const getLayoutStyles = (layout, playerCount) => {
     if (playerCount === 2) {
-      return {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '0.5rem'
-      };
+      if (layout === '2-horizontal') {
+        // Horizontal layout for landscape mobile
+        return {
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '0.5rem',
+          height: '100%'
+        };
+      } else {
+        // Vertical layout for portrait mobile
+        return {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem'
+        };
+      }
     }
     
     if (playerCount === 3) {
@@ -557,11 +636,28 @@ const endGame = async () => {
 
   const getPlayerCardStyle = (layout, playerCount, playerIndex) => {
     if (playerCount === 2) {
-      return {
+      const baseStyle = {
         flex: '1',
-        padding: '1rem',
-        height: '100%'
+        padding: layout === '2-horizontal' ? '0.5rem' : '1rem',
+        height: '100%',
+        minHeight: layout === '2-horizontal' ? 'auto' : '200px'
       };
+      
+      if (layout === '2-horizontal' && playerIndex === 1) {
+        // For "left and right" layout, rotate the second player (right)
+        return {
+          ...baseStyle,
+          transform: 'rotate(180deg)'
+        };
+      } else if (layout === '2-vertical' && playerIndex === 0) {
+        // For "top and bottom" layout, rotate the first player (top)
+        return {
+          ...baseStyle,
+          transform: 'rotate(180deg)'
+        };
+      }
+      
+      return baseStyle;
     }
     
     if (playerCount === 3) {
@@ -1053,6 +1149,120 @@ const endGame = async () => {
     );
   }
 
+  // Render layout preview visual
+  const renderLayoutPreview = (layoutId, playerCount) => {
+    // Base preview container
+    const getPreviewStyle = (layoutId) => {
+      if (playerCount === 2 && layoutId === '2-horizontal') {
+        // Landscape preview for left/right
+        return {
+          width: '80px',
+          height: '45px',
+          backgroundColor: 'transparent',
+          border: '2px solid #ff6b35',
+          borderRadius: '8px',
+          display: 'flex',
+          padding: '4px',
+          gap: '2px'
+        };
+      } else {
+        // Portrait preview for top/bottom
+        return {
+          width: '50px',
+          height: '70px',
+          backgroundColor: 'transparent',
+          border: '2px solid #ff6b35',
+          borderRadius: '8px',
+          display: 'flex',
+          padding: '4px',
+          gap: '2px'
+        };
+      }
+    };
+
+    const previewStyle = getPreviewStyle(layoutId);
+    
+    const cardStyle = {
+      backgroundColor: '#ff6b35',
+      borderRadius: '4px',
+      flex: '1'
+    };
+
+    if (playerCount === 2) {
+      if (layoutId === '2-horizontal') {
+        // Left & Right (landscape phone orientation)
+        return (
+          <div style={{...previewStyle, flexDirection: 'row'}}>
+            <div style={cardStyle}></div>
+            <div style={cardStyle}></div>
+          </div>
+        );
+      } else {
+        // Top and bottom (portrait phone orientation)
+        return (
+          <div style={{...previewStyle, flexDirection: 'column'}}>
+            <div style={cardStyle}></div>
+            <div style={cardStyle}></div>
+          </div>
+        );
+      }
+    } else if (playerCount === 3) {
+      if (layoutId === '3-triangle') {
+        return (
+          <div style={previewStyle}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: '1', gap: '2px' }}>
+              <div style={{ ...cardStyle, height: '100%' }}></div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: '1', gap: '2px' }}>
+              <div style={{ ...cardStyle, height: '48%' }}></div>
+              <div style={{ ...cardStyle, height: '48%' }}></div>
+            </div>
+          </div>
+        );
+      } else {
+        return (
+          <div style={previewStyle}>
+            <div style={cardStyle}></div>
+            <div style={cardStyle}></div>
+            <div style={cardStyle}></div>
+          </div>
+        );
+      }
+    } else if (playerCount === 4) {
+      if (layoutId === '4-grid') {
+        return (
+          <div style={previewStyle}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: '1', gap: '2px' }}>
+              <div style={{ ...cardStyle, height: '48%' }}></div>
+              <div style={{ ...cardStyle, height: '48%' }}></div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: '1', gap: '2px' }}>
+              <div style={{ ...cardStyle, height: '48%' }}></div>
+              <div style={{ ...cardStyle, height: '48%' }}></div>
+            </div>
+          </div>
+        );
+      } else {
+        return (
+          <div style={previewStyle}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: '1', gap: '1px' }}>
+              <div style={{ ...cardStyle, height: '23%' }}></div>
+              <div style={{ ...cardStyle, height: '23%' }}></div>
+              <div style={{ ...cardStyle, height: '23%' }}></div>
+              <div style={{ ...cardStyle, height: '23%' }}></div>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    return (
+      <div style={previewStyle}>
+        <div style={cardStyle}></div>
+      </div>
+    );
+  };
+
   // Render layout selection screen
   if (gameState === 'layout') {
     const getLayoutOptions = () => {
@@ -1061,8 +1271,13 @@ const endGame = async () => {
         return [
           { 
             id: '2-vertical', 
-            name: '2 Players - Side by Side',
-            description: 'Two vertical player cards side by side'
+            name: '2 Players - Top & Bottom',
+            description: 'Two player cards stacked vertically'
+          },
+          { 
+            id: '2-horizontal', 
+            name: '2 Players - Left & Right',
+            description: 'Two player cards side by side'
           }
         ];
       } else if (count === 3) {
@@ -1184,22 +1399,33 @@ const endGame = async () => {
                     cursor: 'pointer',
                     textAlign: 'left',
                     fontFamily: "'Windsor BT', serif",
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem'
                   }}
                 >
-                  <div style={{
-                    fontSize: '1.125rem',
-                    fontWeight: 'bold',
-                    marginBottom: '0.5rem',
-                    color: darkMode ? '#e2e8f0' : '#2d3748'
-                  }}>
-                    {layout.name}
+                  {/* Visual Preview */}
+                  <div style={{ flexShrink: 0 }}>
+                    {renderLayoutPreview(layout.id, players.length)}
                   </div>
-                  <div style={{
-                    fontSize: '0.875rem',
-                    color: darkMode ? '#a0aec0' : '#718096'
-                  }}>
-                    {layout.description}
+                  
+                  {/* Text Content */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      fontSize: '1.125rem',
+                      fontWeight: 'bold',
+                      marginBottom: '0.5rem',
+                      color: darkMode ? '#e2e8f0' : '#2d3748'
+                    }}>
+                      {layout.name}
+                    </div>
+                    <div style={{
+                      fontSize: '0.875rem',
+                      color: darkMode ? '#a0aec0' : '#718096'
+                    }}>
+                      {layout.description}
+                    </div>
                   </div>
                 </button>
               ))}
@@ -1261,680 +1487,481 @@ const endGame = async () => {
         minHeight: '100vh', 
         backgroundColor: darkMode ? '#2d3748' : '#f7fafc', 
         padding: '0.25rem',
-        overflow: 'hidden' 
+        overflow: 'hidden',
+        position: 'relative'
       }}>
-        <div style={{ maxWidth: '48rem', margin: '0 auto', height: '100vh', display: 'flex', flexDirection: 'column' }}>
-          {/* Dark mode toggle */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem', flex: 'none' }}>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              style={{
-                padding: '0.5rem',
-                borderRadius: '0.5rem',
-                backgroundColor: darkMode ? 'rgba(255, 193, 7, 0.2)' : 'rgba(45, 55, 72, 0.1)',
-                border: `2px solid ${darkMode ? '#ffc107' : '#2d3748'}`,
-                color: darkMode ? '#ffc107' : '#2d3748',
-                cursor: 'pointer'
-              }}
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-          </div>
+        <div style={{ 
+          maxWidth: selectedLayout === '2-horizontal' ? 'none' : '48rem', 
+          margin: '0 auto', 
+          height: '100vh', 
+          display: 'flex', 
+          flexDirection: 'column',
+          width: selectedLayout === '2-horizontal' ? '100%' : 'auto'
+        }}>
           
-          {/* Header */}
+          {/* Simplified Player Grid */}
           <div style={{ 
-            backgroundColor: darkMode ? '#1a202c' : 'white',
-            borderRadius: '1rem 1rem 0 0',
-            padding: '0.75rem 1rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            color: darkMode ? 'white' : '#2d3748',
-            boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)',
-            flex: 'none'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span style={{ 
-                fontWeight: 'bold', 
-                fontSize: '1.25rem',
-                fontFamily: "'Windsor BT', serif"
-              }}>TURN {currentTurn}</span>
-              <span style={{ color: darkMode ? '#a0aec0' : '#718096' }}>⏱ {formatTime(elapsedTime)}</span>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                onClick={() => setShowCommanderDamage(!showCommanderDamage)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: darkMode ? 'rgba(255, 107, 53, 0.9)' : 'rgba(255, 107, 53, 0.1)',
-                  color: darkMode ? 'white' : '#ff6b35',
-                  border: darkMode ? 'none' : '1px solid #ff6b35',
-                  borderRadius: '0.375rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.375rem',
-                  fontWeight: '600',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer'
-                }}
-              >
-                <Swords size={14} />
-                DAMAGE
-              </button>
-              <button
-                onClick={endGame}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: darkMode ? 'rgba(229, 62, 62, 0.9)' : 'rgba(229, 62, 62, 0.1)',
-                  color: darkMode ? 'white' : '#e53e3e',
-                  border: darkMode ? 'none' : '1px solid #e53e3e',
-                  borderRadius: '0.375rem',
-                  fontWeight: '600',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer'
-                }}
-              >
-                END GAME
-              </button>
-            </div>
-          </div>
-          
-          {/* Player Grid */}
-          <div style={{ 
-            backgroundColor: darkMode ? '#1a202c' : 'white',
-            padding: '0.5rem',
             flex: '1',
-            boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)',
+            position: 'relative',
             ...getLayoutStyles(selectedLayout, players.length)
           }}>
             {players.map((player, index) => {
               const isActive = index === activePlayerIndex;
               
-              // Get background style with commander image or fallback gradient
-              const getPlayerBackground = (player, playerIndex) => {
-                // Fallback gradient based on player name
-                const getFallbackGradient = (playerName) => {
-                  if (playerName.toLowerCase().includes('nick')) {
-                    return 'linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%)'; // Yellow to Blue
-                  } else {
-                    return 'linear-gradient(135deg, #10b981 0%, #059669 50%, #1e40af 100%)'; // Green gradient
-                  }
-                };
-
-                // If player has commander image and it hasn't failed, use it with overlay
-                if (player.commanderImage && !failedImages.has(player.commanderImage)) {
-                  return {
-                    backgroundImage: `
-                      linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%),
-                      url(${player.commanderImage})
-                    `,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  };
-                }
-
-                // Fallback to original gradient
-                return {
-                  background: getFallbackGradient(player.name)
-                };
+              // Simplified background gradient
+              const getPlayerBackground = (playerName) => {
+                const gradients = [
+                  'linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%)', // Yellow to Blue
+                  'linear-gradient(135deg, #10b981 0%, #059669 50%, #1e40af 100%)', // Green gradient
+                  'linear-gradient(135deg, #e11d48 0%, #be185d 50%, #7c2d12 100%)', // Red gradient
+                  'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #3730a3 100%)', // Purple gradient
+                ];
+                return gradients[index % gradients.length];
               };
               
               return (
                 <div
                   key={player.id}
+                  onTouchStart={(e) => handleTouchStart(e, player.id)}
+                  onTouchEnd={(e) => handleTouchEnd(e, player.id)}
                   style={{
                     ...getPlayerCardStyle(selectedLayout, players.length, index),
                     borderRadius: '1rem',
                     position: 'relative',
                     color: 'white',
-                    ...getPlayerBackground(player, index),
-                    opacity: player.eliminated ? 0.6 : 1,
+                    background: getPlayerBackground(player.name),
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    border: isActive && !player.eliminated ? '4px solid #ff6b35' : 'none',
-                    boxShadow: isActive && !player.eliminated ? '0 0 20px rgba(255, 107, 53, 0.5)' : 'none'
+                    margin: '0.25rem',
+                    touchAction: 'manipulation'
                   }}
                 >
-                  
-                  {player.eliminated && (
-                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                      <Skull size={24} style={{ marginBottom: '0.5rem' }} />
-                      <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>ELIMINATED</div>
+                  {/* Turn/Timer Display for Active Player */}
+                  {isActive && (
+                    <div 
+                      onClick={advanceToNextTurn}
+                      style={{
+                        position: 'absolute',
+                        top: '1rem',
+                        right: '1rem',
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        borderRadius: '0.5rem',
+                        padding: '0.5rem',
+                        fontSize: '0.875rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <div>TURN {currentTurn}</div>
+                      <div>{formatTime(elapsedTime)}</div>
                     </div>
                   )}
                   
-                  {/* Player name */}
+                  {/* Commander Damage Indicator */}
+                  {(() => {
+                    const totalDamage = players.reduce((total, otherPlayer) => {
+                      if (otherPlayer.id !== player.id) {
+                        return total + getCommanderDamageFrom(player.id, otherPlayer.id);
+                      }
+                      return total;
+                    }, 0);
+                    
+                    if (totalDamage > 0) {
+                      return (
+                        <div style={{
+                          position: 'absolute',
+                          top: '1rem',
+                          left: '1rem',
+                          backgroundColor: 'rgba(255, 107, 53, 0.9)',
+                          borderRadius: '50%',
+                          width: '2.5rem',
+                          height: '2.5rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1rem',
+                          fontWeight: 'bold',
+                          border: '2px solid rgba(255,255,255,0.3)'
+                        }}>
+                          ⚔️{totalDamage}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  
+                  {/* Player Name */}
                   <div style={{ 
                     fontWeight: 'bold', 
                     fontSize: '1.25rem', 
                     marginBottom: '1rem', 
                     textTransform: 'uppercase',
                     textAlign: 'center',
-                    fontFamily: "'Windsor BT', serif",
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.4)'
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
                   }}>
                     {player.name}
                   </div>
                   
-                  {/* Life total */}
+                  {/* Life Total */}
                   <div style={{ 
                     fontSize: '4.5rem', 
                     fontWeight: 'bold', 
                     lineHeight: '1',
                     textAlign: 'center',
                     marginBottom: '1.5rem',
-                    position: 'relative',
-                    fontFamily: "'Windsor BT', serif",
-                    textShadow: '3px 3px 6px rgba(0,0,0,0.8), 0 0 12px rgba(0,0,0,0.4)'
+                    textShadow: '3px 3px 6px rgba(0,0,0,0.8)'
                   }}>
                     {player.life}
-                    
-                    {/* Life change indicator */}
-                    {lifeChanges[player.id] && lifeChanges[player.id] !== 0 && (
-                      <div 
-                        style={{
-                          position: 'absolute',
-                          right: '-2rem',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          fontSize: '2rem',
-                          fontWeight: 'bold',
-                          pointerEvents: 'none',
-                          color: lifeChanges[player.id] > 0 ? '#10b981' : '#ef4444',
-                          animation: 'fadeInOut 2s ease-out',
-                          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-                        }}
-                      >
-                        {lifeChanges[player.id] > 0 ? '+' : ''}{lifeChanges[player.id]}
-                      </div>
-                    )}
                   </div>
                   
-                  {/* +/- Buttons */}
-                  {!player.eliminated && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                  {/* Commander Damage Mode Overlay */}
+                  {commanderDamageMode === player.id ? (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(0,0,0,0.9)',
+                      borderRadius: '1rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 5
+                    }}>
+                      <div style={{
+                        position: 'absolute',
+                        top: '1rem',
+                        right: '1rem',
+                        cursor: 'pointer',
+                        fontSize: '1.5rem',
+                        fontWeight: 'bold'
+                      }}
+                      onClick={() => setCommanderDamageMode(null)}
+                      >
+                        ✕
+                      </div>
+                      
+                      <div style={{
+                        textAlign: 'center',
+                        marginBottom: '2rem'
+                      }}>
+                        <div style={{
+                          fontSize: '1.25rem',
+                          fontWeight: 'bold',
+                          marginBottom: '0.5rem'
+                        }}>
+                          COMMANDER
+                        </div>
+                        <div style={{
+                          fontSize: '1rem',
+                          opacity: 0.8
+                        }}>
+                          DAMAGE YOU'VE RECEIVED
+                        </div>
+                      </div>
+                      
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                        gap: '1rem',
+                        width: '100%',
+                        padding: '0 1rem'
+                      }}>
+                        {players.filter(p => p.id !== player.id).map(otherPlayer => {
+                          const damage = getCommanderDamageFrom(player.id, otherPlayer.id);
+                          return (
+                            <div key={otherPlayer.id} style={{
+                              textAlign: 'center',
+                              padding: '1rem',
+                              backgroundColor: 'rgba(255,255,255,0.1)',
+                              borderRadius: '0.5rem'
+                            }}>
+                              <div style={{
+                                fontSize: '0.875rem',
+                                marginBottom: '0.5rem',
+                                opacity: 0.8
+                              }}>
+                                {otherPlayer.name}
+                              </div>
+                              <div style={{
+                                fontSize: '2rem',
+                                fontWeight: 'bold',
+                                marginBottom: '0.5rem'
+                              }}>
+                                {damage}
+                              </div>
+                              <div style={{
+                                display: 'flex',
+                                gap: '0.5rem',
+                                justifyContent: 'center'
+                              }}>
+                                <button
+                                  onClick={() => updateCommanderDamage(player.id, otherPlayer.id, -1)}
+                                  style={{
+                                    width: '2rem',
+                                    height: '2rem',
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(255,255,255,0.2)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    color: 'white',
+                                    fontSize: '1rem',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  -
+                                </button>
+                                <button
+                                  onClick={() => updateCommanderDamage(player.id, otherPlayer.id, 1)}
+                                  style={{
+                                    width: '2rem',
+                                    height: '2rem',
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(255,255,255,0.2)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    color: 'white',
+                                    fontSize: '1rem',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Normal Life Change Buttons */
+                    <div style={{ 
+                      display: 'flex', 
+                      gap: '2rem',
+                      alignItems: 'center'
+                    }}>
                       <button
-                        onClick={() => changeLife(player.id, -1)}
+                        onPointerDown={() => updateLife(player.id, -1)}
                         onContextMenu={(e) => {
                           e.preventDefault();
-                          changeLife(player.id, -5);
+                          updateLife(player.id, -5);
                         }}
                         style={{
-                          width: '3rem',
-                          height: '3rem',
+                          width: '4rem',
+                          height: '4rem',
                           borderRadius: '50%',
-                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          backgroundColor: 'rgba(0,0,0,0.4)',
+                          border: '2px solid rgba(255,255,255,0.3)',
+                          color: 'white',
+                          fontSize: '2rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: 'white',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '1.5rem',
-                          fontWeight: 'bold'
+                          userSelect: 'none'
                         }}
                       >
-                        −
+                        -
                       </button>
+                      
                       <button
-                        onClick={() => changeLife(player.id, 1)}
+                        onPointerDown={() => updateLife(player.id, 1)}
                         onContextMenu={(e) => {
                           e.preventDefault();
-                          changeLife(player.id, 5);
+                          updateLife(player.id, 5);
                         }}
                         style={{
-                          width: '3rem',
-                          height: '3rem',
+                          width: '4rem',
+                          height: '4rem',
                           borderRadius: '50%',
-                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          backgroundColor: 'rgba(0,0,0,0.4)',
+                          border: '2px solid rgba(255,255,255,0.3)',
+                          color: 'white',
+                          fontSize: '2rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: 'white',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '1.5rem',
-                          fontWeight: 'bold'
+                          userSelect: 'none'
                         }}
                       >
                         +
                       </button>
                     </div>
                   )}
-                  
-                  {/* Mana color indicators */}
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '0.375rem' }}>
-                    {player.colors?.map(color => {
-                      const colorData = colorOptions.find(c => c.code === color);
-                      return (
-                        <div
-                          key={color}
-                          style={{
-                            width: '1.25rem',
-                            height: '1.25rem',
-                            borderRadius: '50%',
-                            backgroundImage: `url(${colorData?.image})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            border: '2px solid rgba(255, 255, 255, 0.7)',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
                 </div>
               );
             })}
           </div>
           
-          {/* Commander Damage Matrix */}
-          {showCommanderDamage && (
-            <div style={{ 
-              backgroundColor: darkMode ? '#1a202c' : 'white',
-              borderRadius: '0 0 1rem 1rem',
-              padding: '1.5rem',
-              color: darkMode ? 'white' : '#2d3748',
-              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.1)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+          {/* Central Settings Button */}
+          <div 
+            onClick={() => setShowSettingsModal(true)}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '60px',
+              height: '60px',
+              backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+              border: '3px solid #ff6b35',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              zIndex: 10
+            }}
+          >
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2px',
+              alignItems: 'center'
             }}>
-              <h3 style={{ 
-                fontWeight: 'bold', 
-                marginBottom: '1rem', 
-                fontSize: '1.125rem',
-                fontFamily: "'Windsor BT', serif",
-                letterSpacing: '0.05em'
+              <div style={{
+                width: '20px',
+                height: '2px',
+                backgroundColor: '#ff6b35',
+                borderRadius: '1px'
+              }}></div>
+              <div style={{
+                width: '20px',
+                height: '2px',
+                backgroundColor: '#ff6b35',
+                borderRadius: '1px'
+              }}></div>
+              <div style={{
+                width: '20px',
+                height: '2px',
+                backgroundColor: '#ff6b35',
+                borderRadius: '1px'
+              }}></div>
+            </div>
+          </div>
+          
+          {/* Settings Modal */}
+          {showSettingsModal && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 20
+            }}>
+              <div style={{
+                backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+                borderRadius: '1rem',
+                padding: '2rem',
+                minWidth: '300px',
+                maxWidth: '90vw'
               }}>
-                COMMANDER DAMAGE
-              </h3>
-              
-              {!selectedDamageDealer ? (
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1fr 1fr', 
-                  gap: '0.75rem' 
+                <h3 style={{
+                  color: darkMode ? 'white' : '#2d3748',
+                  marginBottom: '1.5rem',
+                  textAlign: 'center',
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold'
                 }}>
-                  {players.filter(p => !p.eliminated).map(dealer => (
-                    <button
-                      key={dealer.id}
-                      onClick={() => setSelectedDamageDealer(dealer.id)}
-                      style={{
-                        padding: '1rem',
-                        background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
-                        color: 'white',
-                        borderRadius: '0.75rem',
-                        fontWeight: 'bold',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontFamily: "'Windsor BT', serif",
-                        fontSize: '1rem',
-                        letterSpacing: '0.025em',
-                        transition: 'transform 0.1s',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                      }}
-                      onMouseDown={(e) => e.target.style.transform = 'scale(0.98)'}
-                      onMouseUp={(e) => e.target.style.transform = 'scale(1)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                      {dealer.name}'s Damage →
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div>
+                  Game Settings
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <button
-                    onClick={() => setSelectedDamageDealer(null)}
+                    onClick={() => {
+                      setDarkMode(!darkMode);
+                      setShowSettingsModal(false);
+                    }}
                     style={{
-                      marginBottom: '1rem',
-                      fontSize: '0.875rem',
-                      color: darkMode ? '#a0aec0' : '#718096',
-                      backgroundColor: 'transparent',
-                      border: 'none',
+                      padding: '0.75rem',
+                      backgroundColor: darkMode ? '#4a5568' : '#f7fafc',
+                      color: darkMode ? 'white' : '#2d3748',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '0.5rem',
                       cursor: 'pointer',
-                      fontFamily: "'Windsor BT', serif"
+                      fontWeight: '600'
                     }}
                   >
-                    ← Back
+                    {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
                   </button>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {players.filter(p => p.id !== selectedDamageDealer && !p.eliminated).map(receiver => {
-                      const damage = commanderDamage[selectedDamageDealer]?.[receiver.id] || 0;
-                      
-                      return (
-                        <div key={receiver.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <span style={{ 
-                            fontSize: '1rem', 
-                            fontWeight: '600', 
-                            width: '6rem',
-                            fontFamily: "'Windsor BT', serif"
-                          }}>
-                            → {receiver.name}
-                          </span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <button
-                              onClick={() => updateCommanderDamage(selectedDamageDealer, receiver.id, damage - 1)}
-                              style={{
-                                width: '2.5rem',
-                                height: '2.5rem',
-                                backgroundColor: '#dc2626',
-                                color: 'white',
-                                borderRadius: '0.5rem',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                fontSize: '1.25rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              −
-                            </button>
-                            <span style={{ 
-                              width: '3rem', 
-                              textAlign: 'center', 
-                              fontWeight: 'bold',
-                              fontSize: '1.25rem',
-                              color: damage >= 21 ? '#ef4444' : (darkMode ? 'white' : '#2d3748'),
-                              fontFamily: "'Windsor BT', serif"
-                            }}>
-                              {damage}
-                            </span>
-                            <button
-                              onClick={() => updateCommanderDamage(selectedDamageDealer, receiver.id, damage + 1)}
-                              style={{
-                                width: '2.5rem',
-                                height: '2.5rem',
-                                backgroundColor: '#16a34a',
-                                color: 'white',
-                                borderRadius: '0.5rem',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                fontSize: '1.25rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              +
-                            </button>
-                            {damage >= 21 && (
-                              <span style={{ 
-                                color: '#ef4444', 
-                                fontSize: '0.875rem', 
-                                fontWeight: 'bold',
-                                fontFamily: "'Windsor BT', serif"
-                              }}>
-                                LETHAL!
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <button
+                    onClick={() => {
+                      setShowSettingsModal(false);
+                      setGameState('layout');
+                    }}
+                    style={{
+                      padding: '0.75rem',
+                      backgroundColor: darkMode ? '#4a5568' : '#f7fafc',
+                      color: darkMode ? 'white' : '#2d3748',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    🔄 Change Layout
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      if (confirm('Are you sure you want to end this game?')) {
+                        endGame();
+                        setShowSettingsModal(false);
+                      }
+                    }}
+                    style={{
+                      padding: '0.75rem',
+                      backgroundColor: '#e53e3e',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    🏁 End Game
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowSettingsModal(false)}
+                    style={{
+                      padding: '0.75rem',
+                      backgroundColor: 'transparent',
+                      color: darkMode ? '#a0aec0' : '#718096',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Cancel
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           )}
-          
-          {/* Bottom Control Bar */}
-          <div style={{ 
-            backgroundColor: darkMode ? '#2d3748' : '#2d3748',
-            borderRadius: '0 0 1rem 1rem',
-            padding: '1rem 1.5rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            color: 'white'
-          }}>
-            <button
-              onClick={nextTurn}
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
-                color: 'white',
-                borderRadius: '2rem',
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px 0 rgba(255, 107, 53, 0.39)'
-              }}
-            >
-              NEXT TURN
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Render game finished screen
-  if (gameState === 'finished') {
-    const winner = players.find(p => !p.eliminated);
-    
-    return (
-      <div style={{ 
-        minHeight: '100vh', 
-        backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
-        padding: '1rem'
-      }}>
-        <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-          {/* Dark mode toggle */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              style={{
-                padding: '0.5rem',
-                borderRadius: '0.5rem',
-                backgroundColor: darkMode ? 'rgba(255, 193, 7, 0.2)' : 'rgba(45, 55, 72, 0.1)',
-                border: `2px solid ${darkMode ? '#ffc107' : '#2d3748'}`,
-                color: darkMode ? '#ffc107' : '#2d3748',
-                cursor: 'pointer'
-              }}
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-          </div>
-          
-          <div style={{
-            borderRadius: '1rem',
-            overflow: 'hidden',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
-          }}>
-            {/* Header with gradient */}
-            <div style={{
-              background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)',
-              color: 'white',
-              padding: '1.5rem',
-              textAlign: 'center'
-            }}>
-              <Trophy size={48} style={{ marginBottom: '0.75rem', marginLeft: 'auto', marginRight: 'auto', display: 'block' }} />
-              <h1 style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: 'bold', 
-                margin: '0 0 0.5rem 0',
-                letterSpacing: '0.05em',
-                fontFamily: "'Matrix Bold', sans-serif",
-                color: 'white'
-              }}>
-                GAME COMPLETE!
-              </h1>
-              <p style={{ 
-                fontSize: '1.875rem', 
-                fontWeight: 'bold',
-                margin: 0,
-                letterSpacing: '0.1em',
-                fontFamily: "'Matrix Bold', sans-serif",
-                color: 'white'
-              }}>
-                {winner?.name || 'NO WINNER'} WINS!
-              </p>
-            </div>
-            
-            {/* Content area */}
-            <div style={{
-              backgroundColor: darkMode ? '#1a202c' : '#ffffff',
-              padding: '1.5rem',
-              color: darkMode ? '#e2e8f0' : '#2d3748'
-            }}>
-              {/* Stats grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{
-                  backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem',
-                  textAlign: 'center'
-                }}>
-                  <div style={{ 
-                    fontSize: '0.875rem', 
-                    color: darkMode ? '#a0aec0' : '#718096',
-                    marginBottom: '0.25rem',
-                    fontFamily: "'Windsor BT', serif"
-                  }}>
-                    TOTAL TURNS
-                  </div>
-                  <div style={{ 
-                    fontSize: '1.5rem', 
-                    fontWeight: 'bold',
-                    fontFamily: "'Windsor BT', serif"
-                  }}>
-                    {currentTurn}
-                  </div>
-                </div>
-                <div style={{
-                  backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem',
-                  textAlign: 'center'
-                }}>
-                  <div style={{ 
-                    fontSize: '0.875rem', 
-                    color: darkMode ? '#a0aec0' : '#718096',
-                    marginBottom: '0.25rem',
-                    fontFamily: "'Windsor BT', serif"
-                  }}>
-                    DURATION
-                  </div>
-                  <div style={{ 
-                    fontSize: '1.5rem', 
-                    fontWeight: 'bold',
-                    fontFamily: "'Windsor BT', serif"
-                  }}>
-                    {formatTime(elapsedTime)}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Final standings */}
-              <h3 style={{ 
-                fontWeight: 'bold', 
-                marginBottom: '0.75rem',
-                fontSize: '1.125rem',
-                fontFamily: "'Windsor BT', serif"
-              }}>
-                FINAL STANDINGS
-              </h3>
-              
-              <div style={{ marginBottom: '1.5rem' }}>
-                {winner && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.75rem',
-                    backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
-                    borderRadius: '0.5rem',
-                    border: `2px solid ${darkMode ? '#f59e0b' : '#f59e0b'}`
-                  }}>
-                    <span style={{ fontSize: '1.5rem' }}>🏆</span>
-                    <div style={{ fontWeight: '600', fontFamily: "'Windsor BT', serif" }}>
-                      {winner.name}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Button section */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {/* Quick rematch button */}
-                <button
-                  onClick={() => newGame(true)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    backgroundColor: darkMode ? '#4a5568' : '#4a5568',
-                    color: 'white',
-                    borderRadius: '0.5rem',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: "'Windsor BT', serif"
-                  }}
-                >
-                  <Shuffle size={18} />
-                  QUICK REMATCH (SAME PLAYERS)
-                </button>
-                
-                {/* Bottom two buttons */}
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button
-                    onClick={() => newGame(false)}
-                    style={{
-                      flex: '1',
-                      padding: '0.75rem',
-                      background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #dc2626 100%)',
-                      color: 'white',
-                      borderRadius: '0.5rem',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontFamily: "'Windsor BT', serif"
-                    }}
-                  >
-                    <RotateCw size={18} />
-                    NEW GAME
-                  </button>
-                  <button
-                    onClick={() => console.log('Save to history')}
-                    style={{
-                      flex: '1',
-                      padding: '0.75rem',
-                      backgroundColor: '#059669',
-                      color: 'white',
-                      borderRadius: '0.5rem',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontFamily: "'Windsor BT', serif"
-                    }}
-                  >
-                    <Save size={18} />
-                    SAVE
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
