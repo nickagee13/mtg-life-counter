@@ -1515,14 +1515,16 @@ const endGame = async () => {
   // Render game playing screen  
   if (gameState === 'playing') {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        backgroundColor: darkMode ? '#2d3748' : '#f7fafc', 
-        padding: '0.25rem',
-        paddingBottom: '0.5rem',
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
+      <div 
+        className="mtg-game-container"
+        style={{ 
+          minHeight: '100vh', 
+          backgroundColor: darkMode ? '#2d3748' : '#f7fafc', 
+          padding: '0.25rem',
+          paddingBottom: '0.5rem',
+          overflow: 'hidden',
+          position: 'relative'
+        }}>
         <div style={{ 
           maxWidth: selectedLayout === '2-horizontal' ? 'none' : '48rem', 
           margin: '0 auto', 
