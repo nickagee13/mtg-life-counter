@@ -2,7 +2,9 @@
   command = "npm run build"
   publish = "build"
 
+# SPA fallback - only redirect non-files to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
