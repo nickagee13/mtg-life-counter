@@ -92,14 +92,14 @@ const MTGCommanderTracker = () => {
         top: 0 !important;
         left: 0 !important;
         width: 100vw !important;
-        height: 100vh !important;
+        height: 100dvh !important;
         display: flex !important;
         flex-direction: row !important;
       }
       
       .two-player-horizontal .player-card {
         width: 50vw !important;
-        height: 100vh !important;
+        height: 100dvh !important;
         flex: none !important;
       }
       
@@ -603,7 +603,7 @@ const endGame = async () => {
           display: 'flex',
           flexDirection: 'row',
           gap: '0.25rem',
-          height: '100vh',
+          height: '100dvh',
           width: '100vw',
           position: 'fixed',
           top: '0',
@@ -666,7 +666,7 @@ const endGame = async () => {
       const baseStyle = {
         flex: layout === '2-horizontal' ? 'none' : '1',
         padding: layout === '2-horizontal' ? '1rem' : '1rem',
-        height: layout === '2-horizontal' ? '100vh' : '100%',
+        height: layout === '2-horizontal' ? '100dvh' : '100%',
         minHeight: layout === '2-horizontal' ? '100vh' : '200px',
         width: layout === '2-horizontal' ? '50vw' : 'auto'
       };
@@ -1521,7 +1521,7 @@ const endGame = async () => {
         <div style={{ 
           maxWidth: selectedLayout === '2-horizontal' ? 'none' : '48rem', 
           margin: '0 auto', 
-          height: '100vh', 
+          height: '100dvh', 
           display: 'flex', 
           flexDirection: 'column',
           width: selectedLayout === '2-horizontal' ? '100%' : 'auto'
@@ -1586,14 +1586,18 @@ const endGame = async () => {
                         position: 'absolute',
                         top: '1rem',
                         right: '1rem',
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        borderRadius: '0.5rem',
-                        padding: '0.5rem',
-                        fontSize: '0.875rem',
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        borderRadius: '1rem',
+                        padding: '1rem',
+                        fontSize: '1.125rem',
                         fontWeight: 'bold',
                         cursor: 'pointer',
                         userSelect: 'none',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        zIndex: 100,
+                        border: '2px solid rgba(255,255,255,0.3)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        minWidth: '100px'
                       }}
                     >
                       <div>TURN {currentTurn}</div>

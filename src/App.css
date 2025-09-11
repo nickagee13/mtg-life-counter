@@ -281,7 +281,41 @@
 
 /* Minimum height */
 .min-h-screen {
-  min-height: 100vh;
+  min-height: 100vh; /* Fallback for older browsers */
+  min-height: 100dvh; /* Dynamic viewport height for modern mobile browsers */
+}
+
+/* Mobile-specific adjustments */
+@media screen and (max-width: 768px) {
+  /* Ensure proper spacing on smaller screens */
+  body, #root {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+  
+  /* Prevent content overflow on very small screens */
+  * {
+    max-width: 100vw;
+  }
+}
+
+/* Support for various mobile screen sizes */
+@media screen and (max-height: 600px) {
+  /* Smaller vertical screens */
+  .text-8xl {
+    font-size: 4rem; /* Reduce from 6rem for smaller screens */
+    line-height: 1;
+  }
+}
+
+@media screen and (max-height: 500px) {
+  /* Very small vertical screens */
+  .text-8xl {
+    font-size: 3rem; /* Further reduce font size */
+    line-height: 1;
+  }
 }
 
 /* Max width */

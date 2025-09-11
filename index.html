@@ -52,9 +52,17 @@
       @media screen {
         body {
           /* Keep interface consistent regardless of orientation */
-          min-height: 100vh;
+          min-height: 100dvh; /* Use dynamic viewport height for mobile */
           min-width: 100vw;
         }
+      }
+      
+      /* Ensure full height on mobile browsers */
+      body, #root {
+        height: 100vh; /* Fallback for older browsers */
+        height: 100dvh; /* Dynamic viewport height for modern mobile browsers */
+        max-height: 100vh; /* Fallback for older browsers */
+        max-height: 100dvh; /* Dynamic viewport height for modern mobile browsers */
       }
     </style>
   </head>
