@@ -734,10 +734,10 @@ const endGame = async () => {
         minHeight: '100vh', 
         backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
         padding: '1rem',
-        paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
-        paddingTop: 'calc(1rem + env(safe-area-inset-top))',
-        paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
-        paddingRight: 'calc(1rem + env(safe-area-inset-right))'
+        paddingBottom: '1rem',
+        paddingTop: '1rem',
+        paddingLeft: '1rem',
+        paddingRight: '1rem'
       }}>
         <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
           {/* Dark mode toggle */}
@@ -1519,17 +1519,14 @@ const endGame = async () => {
         minHeight: '100vh', 
         backgroundColor: darkMode ? '#2d3748' : '#f7fafc', 
         padding: '0.25rem',
-        paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom))',
-        paddingTop: 'calc(0.25rem + env(safe-area-inset-top))',
-        paddingLeft: 'calc(0.25rem + env(safe-area-inset-left))',
-        paddingRight: 'calc(0.25rem + env(safe-area-inset-right))',
+        paddingBottom: '0.5rem',
         overflow: 'hidden',
         position: 'relative'
       }}>
         <div style={{ 
           maxWidth: selectedLayout === '2-horizontal' ? 'none' : '48rem', 
           margin: '0 auto', 
-          height: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))', 
+          height: '100vh', 
           display: 'flex', 
           flexDirection: 'column',
           width: selectedLayout === '2-horizontal' ? '100%' : 'auto'
