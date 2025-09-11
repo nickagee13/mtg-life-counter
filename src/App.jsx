@@ -1765,13 +1765,13 @@ const endGame = async () => {
                           fontWeight: 'bold',
                           marginBottom: '0.5rem'
                         }}>
-                          {player.name.toUpperCase()}'S COMMANDER
+                          COMMANDER DAMAGE
                         </div>
                         <div style={{
                           fontSize: '1rem',
                           opacity: 0.8
                         }}>
-                          DAMAGE DEALT TO OTHER PLAYERS
+                          {player.name.toUpperCase()} RECEIVED FROM OTHER PLAYERS
                         </div>
                       </div>
                       
@@ -1783,7 +1783,7 @@ const endGame = async () => {
                         padding: '0 1rem'
                       }}>
                         {players.filter(p => p.id !== player.id).map(otherPlayer => {
-                          const damage = getCommanderDamageFrom(otherPlayer.id, player.id);
+                          const damage = getCommanderDamageFrom(player.id, otherPlayer.id);
                           return (
                             <div key={otherPlayer.id} style={{
                               textAlign: 'center',
@@ -1811,7 +1811,7 @@ const endGame = async () => {
                                 justifyContent: 'center'
                               }}>
                                 <button
-                                  onClick={() => updateCommanderDamage(otherPlayer.id, player.id, -1)}
+                                  onClick={() => updateCommanderDamage(player.id, otherPlayer.id, -1)}
                                   style={{
                                     width: '2rem',
                                     height: '2rem',
@@ -1830,7 +1830,7 @@ const endGame = async () => {
                                   -
                                 </button>
                                 <button
-                                  onClick={() => updateCommanderDamage(otherPlayer.id, player.id, 1)}
+                                  onClick={() => updateCommanderDamage(player.id, otherPlayer.id, 1)}
                                   style={{
                                     width: '2rem',
                                     height: '2rem',
