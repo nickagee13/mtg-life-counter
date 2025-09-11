@@ -57,14 +57,24 @@ mtg-life-counter/
 - **@testing-library/user-event 13.5.0**
 
 ## Current Focus
-**Recently completed**: Implemented simplified UI redesign with enhanced mobile functionality and fixed critical syntax errors:
+**Recently completed**: Major UX improvements with enhanced mobile interface and streamlined interaction system:
 
-### Major UI Redesign (Latest)
+### Latest Improvements (January 2025)
+- **Streamlined Life Counter Interface**: Removed visible +/- buttons and implemented invisible tap zones
+  - Left half of player card = decrease life (-1, right-click for -5)
+  - Right half of player card = increase life (+1, right-click for +5)
+  - Much cleaner interface with larger, more intuitive tap targets
+- **Fixed Commander Image Display**: Restored commander artwork as player card backgrounds with proper fallback to gradients
+- **Enhanced Life Change Animations**: Repositioned change indicators to the left of life totals to prevent overlap
+- **Active Player Visual Indicator**: Added subtle golden glowing border to highlight whose turn it is
+- **Orientation-Independent 2-Player Layout**: Fixed landscape layout to remain consistent regardless of device orientation
+- **Improved Commander Damage Integration**: Fixed tap zone interference with swipe gestures for seamless commander damage tracking
+
+### Previous Major UI Redesign 
 - **Simplified Game Interface**: Removed cluttered header and replaced with central settings button
 - **Touch-Based Commander Damage**: Implemented swipe gestures (left/right) for tracking commander damage between players
 - **Interactive Turn Management**: Made timer clickable to advance player turns
 - **Central Settings Modal**: All game controls accessible through centered floating button
-- **Fixed Syntax Errors**: Resolved JavaScript parsing errors caused by malformed duplicate code
 
 ### Previous Migration Success
 - Successfully migrated from Create React App to Vite for faster development
@@ -83,6 +93,11 @@ mtg-life-counter/
 - [x] **Touch-Based Commander Damage**: Swipe gestures for mobile-friendly commander damage tracking
 - [x] **Simplified UI**: Central settings button with modal interface
 - [x] **Interactive Turn System**: Clickable timer for turn advancement
+- [x] **Streamlined Life Counter**: Invisible tap zones for cleaner interface
+- [x] **Commander Image Backgrounds**: Player cards display commander artwork
+- [x] **Life Change Animations**: Visual feedback for life total changes
+- [x] **Active Player Highlighting**: Golden glow effect for current turn
+- [x] **Orientation-Independent Layout**: Consistent 2-player landscape mode
 - [ ] **Game History**: Display past games from Supabase database
 - [ ] **Player Statistics**: Track win rates and game performance
 - [ ] **Export Game Data**: Allow users to export game results
@@ -124,3 +139,7 @@ npm run eject      # No longer available (was CRA-specific)
 - Commander search integrates with Scryfall API for accurate card data
 - Touch-optimized interface with swipe gestures for commander damage tracking
 - Static layout orientations independent of device rotation for consistent gameplay
+- Invisible tap zones provide cleaner interface while maintaining easy life total adjustment
+- Commander artwork automatically displays as player card backgrounds when selected
+- Life change animations positioned to avoid visual overlap with life totals
+- Active player indicator uses subtle golden glow effect for clear turn tracking

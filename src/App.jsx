@@ -82,6 +82,27 @@ const MTGCommanderTracker = () => {
         font-family: 'Matrix Bold', 'Oswald', sans-serif;
       }
       
+      .life-change-animation {
+        animation: fadeInOut 2s ease-out forwards;
+      }
+      
+      /* Force landscape-style layout for 2-player horizontal mode */
+      .two-player-horizontal {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        display: flex !important;
+        flex-direction: row !important;
+      }
+      
+      .two-player-horizontal .player-card {
+        width: 50vw !important;
+        height: 100vh !important;
+        flex: none !important;
+      }
+      
       * {
         font-family: 'Matrix Bold', sans-serif !important;
       }
@@ -576,12 +597,18 @@ const endGame = async () => {
   const getLayoutStyles = (layout, playerCount) => {
     if (playerCount === 2) {
       if (layout === '2-horizontal') {
-        // Horizontal layout for landscape mobile
+        // Horizontal layout for landscape mobile - side by side, full height
+        // Force landscape-style layout regardless of device orientation
         return {
           display: 'flex',
           flexDirection: 'row',
-          gap: '0.5rem',
-          height: '100%'
+          gap: '0.25rem',
+          height: '100vh',
+          width: '100vw',
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          overflow: 'hidden'
         };
       } else {
         // Vertical layout for portrait mobile
@@ -637,10 +664,11 @@ const endGame = async () => {
   const getPlayerCardStyle = (layout, playerCount, playerIndex) => {
     if (playerCount === 2) {
       const baseStyle = {
-        flex: '1',
-        padding: layout === '2-horizontal' ? '0.5rem' : '1rem',
-        height: '100%',
-        minHeight: layout === '2-horizontal' ? 'auto' : '200px'
+        flex: layout === '2-horizontal' ? 'none' : '1',
+        padding: layout === '2-horizontal' ? '1rem' : '1rem',
+        height: layout === '2-horizontal' ? '100vh' : '100%',
+        minHeight: layout === '2-horizontal' ? '100vh' : '200px',
+        width: layout === '2-horizontal' ? '50vw' : 'auto'
       };
       
       if (layout === '2-horizontal' && playerIndex === 1) {
@@ -1500,16 +1528,21 @@ const endGame = async () => {
         }}>
           
           {/* Simplified Player Grid */}
-          <div style={{ 
-            flex: '1',
-            position: 'relative',
-            ...getLayoutStyles(selectedLayout, players.length)
-          }}>
+          <div 
+            className={selectedLayout === '2-horizontal' ? 'two-player-horizontal' : ''}
+            style={{ 
+              flex: '1',
+              position: 'relative',
+              ...getLayoutStyles(selectedLayout, players.length)
+            }}>
             {players.map((player, index) => {
               const isActive = index === activePlayerIndex;
               
-              // Simplified background gradient
-              const getPlayerBackground = (playerName) => {
+              // Get player background - use commander image if available, otherwise gradient
+              const getPlayerBackground = (player, index) => {
+                if (player.commanderImage && !failedImages.has(player.commanderImage)) {
+                  return `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(${player.commanderImage})`;
+                }
                 const gradients = [
                   'linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%)', // Yellow to Blue
                   'linear-gradient(135deg, #10b981 0%, #059669 50%, #1e40af 100%)', // Green gradient
@@ -1522,6 +1555,7 @@ const endGame = async () => {
               return (
                 <div
                   key={player.id}
+                  className={selectedLayout === '2-horizontal' ? 'player-card' : ''}
                   onTouchStart={(e) => handleTouchStart(e, player.id)}
                   onTouchEnd={(e) => handleTouchEnd(e, player.id)}
                   style={{
@@ -1529,13 +1563,19 @@ const endGame = async () => {
                     borderRadius: '1rem',
                     position: 'relative',
                     color: 'white',
-                    background: getPlayerBackground(player.name),
+                    background: getPlayerBackground(player, index),
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    margin: '0.25rem',
-                    touchAction: 'manipulation'
+                    margin: selectedLayout === '2-horizontal' ? '0' : '0.25rem',
+                    touchAction: 'manipulation',
+                    border: isActive ? '3px solid #fbbf24' : '2px solid rgba(255,255,255,0.2)',
+                    boxShadow: isActive ? '0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3)' : 'none',
+                    transition: 'border 0.3s ease, box-shadow 0.3s ease'
                   }}
                 >
                   {/* Turn/Timer Display for Active Player */}
@@ -1613,13 +1653,78 @@ const endGame = async () => {
                     lineHeight: '1',
                     textAlign: 'center',
                     marginBottom: '1.5rem',
-                    textShadow: '3px 3px 6px rgba(0,0,0,0.8)'
+                    textShadow: '3px 3px 6px rgba(0,0,0,0.8)',
+                    position: 'relative'
                   }}>
                     {player.life}
+                    
+                    {/* Life Change Animation */}
+                    {lifeChanges[player.id] && (
+                      <div 
+                        className="life-change-animation"
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '-2rem',
+                          transform: 'translateY(-50%)',
+                          fontSize: '2rem',
+                          fontWeight: 'bold',
+                          color: lifeChanges[player.id] > 0 ? '#10b981' : '#ef4444',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                          pointerEvents: 'none',
+                          zIndex: 10
+                        }}
+                      >
+                        {lifeChanges[player.id] > 0 ? '+' : ''}{lifeChanges[player.id]}
+                      </div>
+                    )}
                   </div>
                   
+                  {/* Left and Right Tap Zones for Life Changes */}
+                  {commanderDamageMode === null && (
+                    <>
+                      {/* Left half - decrease life */}
+                      <div
+                        onPointerDown={() => changeLife(player.id, -1)}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          changeLife(player.id, -5);
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '0',
+                          left: '0',
+                          width: '50%',
+                          height: '100%',
+                          zIndex: 1,
+                          cursor: 'pointer',
+                          userSelect: 'none'
+                        }}
+                      />
+                      
+                      {/* Right half - increase life */}
+                      <div
+                        onPointerDown={() => changeLife(player.id, 1)}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          changeLife(player.id, 5);
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '0',
+                          right: '0',
+                          width: '50%',
+                          height: '100%',
+                          zIndex: 1,
+                          cursor: 'pointer',
+                          userSelect: 'none'
+                        }}
+                      />
+                    </>
+                  )}
+                  
                   {/* Commander Damage Mode Overlay */}
-                  {commanderDamageMode === player.id ? (
+                  {commanderDamageMode === player.id && (
                     <div style={{
                       position: 'absolute',
                       top: 0,
@@ -1744,63 +1849,6 @@ const endGame = async () => {
                           );
                         })}
                       </div>
-                    </div>
-                  ) : (
-                    /* Normal Life Change Buttons */
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: '2rem',
-                      alignItems: 'center'
-                    }}>
-                      <button
-                        onPointerDown={() => updateLife(player.id, -1)}
-                        onContextMenu={(e) => {
-                          e.preventDefault();
-                          updateLife(player.id, -5);
-                        }}
-                        style={{
-                          width: '4rem',
-                          height: '4rem',
-                          borderRadius: '50%',
-                          backgroundColor: 'rgba(0,0,0,0.4)',
-                          border: '2px solid rgba(255,255,255,0.3)',
-                          color: 'white',
-                          fontSize: '2rem',
-                          fontWeight: 'bold',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          userSelect: 'none'
-                        }}
-                      >
-                        -
-                      </button>
-                      
-                      <button
-                        onPointerDown={() => updateLife(player.id, 1)}
-                        onContextMenu={(e) => {
-                          e.preventDefault();
-                          updateLife(player.id, 5);
-                        }}
-                        style={{
-                          width: '4rem',
-                          height: '4rem',
-                          borderRadius: '50%',
-                          backgroundColor: 'rgba(0,0,0,0.4)',
-                          border: '2px solid rgba(255,255,255,0.3)',
-                          color: 'white',
-                          fontSize: '2rem',
-                          fontWeight: 'bold',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          userSelect: 'none'
-                        }}
-                      >
-                        +
-                      </button>
                     </div>
                   )}
                 </div>
