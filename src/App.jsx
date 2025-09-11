@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6 } from 'lucide-react';
+import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6, CreditCard } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import './App.css';
 
@@ -896,6 +896,7 @@ const endGame = async () => {
                       </div>
                     )}
                     
+
                     {/* Clear commander button when commander is selected */}
                     {player.commander && player.colors && player.colors.length > 0 && (
                       <button
@@ -1054,41 +1055,133 @@ const endGame = async () => {
                       )}
                     </div>
                     
-                    {/* Keywords display */}
-                    {player.commander && player.commanderKeywords && player.commanderKeywords.length > 0 && (
-                      <div style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '0.25rem',
-                        alignItems: 'center'
-                      }}>
-                        {player.commanderKeywords.slice(0, 4).map((keyword, index) => (
-                          <span
-                            key={index}
-                            style={{
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {/* Keywords display */}
+                      {player.commander && player.commanderKeywords && player.commanderKeywords.length > 0 && (
+                        <div style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '0.25rem',
+                          alignItems: 'center'
+                        }}>
+                          {player.commanderKeywords.slice(0, 4).map((keyword, index) => (
+                            <span
+                              key={index}
+                              style={{
+                                fontSize: '0.625rem',
+                                padding: '0.125rem 0.375rem',
+                                backgroundColor: darkMode ? '#4a5568' : '#cbd5e0',
+                                color: darkMode ? '#e2e8f0' : '#2d3748',
+                                borderRadius: '0.25rem',
+                                fontWeight: '500',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {keyword}
+                            </span>
+                          ))}
+                          {player.commanderKeywords.length > 4 && (
+                            <span style={{
                               fontSize: '0.625rem',
-                              padding: '0.125rem 0.375rem',
-                              backgroundColor: darkMode ? '#4a5568' : '#cbd5e0',
-                              color: darkMode ? '#e2e8f0' : '#2d3748',
-                              borderRadius: '0.25rem',
-                              fontWeight: '500',
-                              whiteSpace: 'nowrap'
+                              color: darkMode ? '#a0aec0' : '#718096',
+                              fontWeight: '500'
+                            }}>
+                              +{player.commanderKeywords.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Card preview icon */}
+                      {player.commander && (() => {
+                        console.log('Player:', player.commander, 'Has image:', !!player.commanderImage, 'Image URL:', player.commanderImage);
+                        return true;
+                      })() && (
+                        <div
+                          style={{
+                            cursor: 'pointer',
+                            padding: '0.5rem',
+                            borderRadius: '0.25rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#ffffff',
+                            backgroundColor: '#3b82f6',
+                            position: 'relative'
+                          }}
+                          onMouseEnter={(e) => {
+                            const preview = document.getElementById(`card-preview-${player.id}`);
+                            if (preview) {
+                              preview.style.display = 'block';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            const preview = document.getElementById(`card-preview-${player.id}`);
+                            if (preview) {
+                              preview.style.display = 'none';
+                            }
+                          }}
+                        >
+                          <CreditCard size={16} />
+                          
+                          {/* Card preview tooltip */}
+                          <div
+                            id={`card-preview-${player.id}`}
+                            style={{
+                              display: 'none',
+                              position: 'absolute',
+                              top: '-10px',
+                              right: '100%',
+                              marginRight: '10px',
+                              zIndex: 1000,
+                              backgroundColor: darkMode ? '#2d3748' : '#ffffff',
+                              border: `2px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
+                              borderRadius: '12px',
+                              padding: '0.5rem',
+                              boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                              width: '200px',
+                              pointerEvents: 'none'
                             }}
                           >
-                            {keyword}
-                          </span>
-                        ))}
-                        {player.commanderKeywords.length > 4 && (
-                          <span style={{
-                            fontSize: '0.625rem',
-                            color: darkMode ? '#a0aec0' : '#718096',
-                            fontWeight: '500'
-                          }}>
-                            +{player.commanderKeywords.length - 4}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                            <img
+                              src={player.commanderImage}
+                              alt={player.commander}
+                              style={{
+                                width: '100%',
+                                borderRadius: '8px',
+                                display: 'block'
+                              }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'block';
+                              }}
+                            />
+                            <div
+                              style={{
+                                display: 'none',
+                                textAlign: 'center',
+                                padding: '1rem',
+                                color: darkMode ? '#a0aec0' : '#718096',
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              Preview unavailable
+                            </div>
+                            <div
+                              style={{
+                                marginTop: '0.5rem',
+                                fontSize: '0.75rem',
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                color: darkMode ? '#e2e8f0' : '#2d3748'
+                              }}
+                            >
+                              {player.commander}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1586,18 +1679,19 @@ const endGame = async () => {
                         position: 'absolute',
                         top: '1rem',
                         right: '1rem',
-                        backgroundColor: 'rgba(0,0,0,0.8)',
-                        borderRadius: '1rem',
-                        padding: '1rem',
-                        fontSize: '1.125rem',
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        borderRadius: '1.5rem',
+                        padding: '1.5rem',
+                        fontSize: '1.5rem',
                         fontWeight: 'bold',
                         cursor: 'pointer',
                         userSelect: 'none',
                         textAlign: 'center',
-                        zIndex: 100,
-                        border: '2px solid rgba(255,255,255,0.3)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                        minWidth: '100px'
+                        zIndex: 200,
+                        border: '3px solid rgba(255,255,255,0.4)',
+                        boxShadow: '0 6px 16px rgba(0,0,0,0.4)',
+                        minWidth: '140px',
+                        pointerEvents: 'all'
                       }}
                     >
                       <div>TURN {currentTurn}</div>
@@ -1721,7 +1815,8 @@ const endGame = async () => {
                           height: '100%',
                           zIndex: 1,
                           cursor: 'pointer',
-                          userSelect: 'none'
+                          userSelect: 'none',
+                          clipPath: isActive ? 'polygon(0 0, calc(100% - 180px) 0, calc(100% - 180px) 120px, 100% 120px, 100% 100%, 0 100%)' : 'none'
                         }}
                       />
                     </>

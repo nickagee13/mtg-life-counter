@@ -88,7 +88,56 @@ mtg-life-counter/
 - Converted file structure and build configuration for Vite compatibility
 - Updated all import paths and environment variables for Vite standards
 
+## Current Session Progress (September 11, 2025)
+
+### Recently Completed
+- [x] **Enhanced Timer Interface**: Made turn timer larger and more prominent
+  - Increased font size from 1.125rem to 1.5rem
+  - Enhanced padding, border radius, and shadows
+  - Increased z-index to 200 to prevent conflicts
+  - Added clip-path to right tap zone to avoid interference
+
+### In Progress - Card Preview Feature
+**Status**: Implementation complete, but not displaying due to HMR/WebSocket issues
+
+**What was implemented**:
+- Added `CreditCard` icon import from Lucide React
+- Created card preview component with hover functionality
+- Positioned in keywords section (next to "Commander ninjutsu" text)
+- Uses existing `player.commanderImage` from Scryfall API
+- Includes error handling and fallback messages
+- Styled tooltip with dark/light mode support
+
+**Current Issue**:
+- Vite HMR (Hot Module Replacement) WebSocket connections failing
+- Changes not being applied to browser despite server restarts
+- Debug logs not appearing in console
+- Bright blue test button not visible (should be obvious if working)
+
+**Code Location**: 
+- Card preview icon: `src/App.jsx` lines ~1095-1181
+- Positioned in the keywords display section after "Commander ninjutsu"
+- Condition: `player.commander && player.commanderImage`
+
+**Next Steps for Card Preview**:
+1. **Debug HMR issue**: Investigate Vite WebSocket connection problems
+2. **Hard refresh test**: Try Ctrl+F5 or clearing browser cache
+3. **Console debugging**: Check for JavaScript errors preventing render
+4. **Condition verification**: Ensure `player.commanderImage` is being set properly
+5. **Fallback approach**: If HMR continues failing, try full server restart and build
+
+**Technical Details**:
+- Preview shows 200px wide card image
+- Positioned to left of icon to avoid screen edge
+- High z-index (1000) for proper layering
+- Error handling if Scryfall image fails to load
+
 ## Next Steps
+
+### Immediate Priority (Next Session)
+- [ ] **Fix Card Preview Display**: Resolve HMR/WebSocket issues preventing card icon from showing
+- [ ] **Finalize Card Preview Styling**: Remove debug blue background, make subtle and polished
+- [ ] **Test Card Preview Functionality**: Verify hover shows Scryfall card images properly
 
 ### Development Priorities
 - [ ] **Testing Migration**: Update or remove Create React App testing setup for Vite compatibility
@@ -109,6 +158,8 @@ mtg-life-counter/
 - [x] **Corrected Commander Damage Flow**: Fixed swipe logic to show damage dealt TO other players
 - [x] **Safari Mobile Support**: Full PWA compatibility with Safari-specific optimizations
 - [x] **Dynamic Viewport Handling**: Mobile-friendly viewport using dvh units
+- [x] **Enhanced Turn Timer**: Larger, more prominent timer with better clickability
+- [ ] **Card Preview Feature**: Hover preview of commander cards (in progress - needs HMR fix)
 - [ ] **Game History**: Display past games from Supabase database
 - [ ] **Player Statistics**: Track win rates and game performance
 - [ ] **Export Game Data**: Allow users to export game results
