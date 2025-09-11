@@ -167,25 +167,15 @@ export const initializePWA = () => {
   if (isPWA()) {
     document.body.classList.add('pwa-mode');
     
-    // Add PWA-specific CSS with safe fallbacks
+    // Add PWA-specific CSS
     const pwaStyle = document.createElement('style');
     pwaStyle.textContent = `
       .pwa-mode {
-        /* Add safe area insets for devices with notches - with fallbacks */
-        padding-top: 0px;
-        padding-top: env(safe-area-inset-top, 0px);
-        padding-bottom: 20px;
-        padding-bottom: env(safe-area-inset-bottom, 20px);
-        padding-left: 0px;
-        padding-left: env(safe-area-inset-left, 0px);
-        padding-right: 0px;
-        padding-right: env(safe-area-inset-right, 0px);
-      }
-      
-      /* Specific adjustments for game containers */
-      .pwa-mode .mtg-game-container {
-        padding-bottom: 20px;
-        padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+        /* Add safe area insets for devices with notches */
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
       }
       
       /* Hide browser UI elements that don't apply in PWA mode */
