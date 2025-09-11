@@ -60,8 +60,10 @@ mtg-life-counter/
 **Recently completed**: Major UX improvements with enhanced mobile interface and streamlined interaction system:
 
 ### Latest Improvements (January 2025)
+- **Polished Commander Damage Interface**: Redesigned with large, prominent +/- controls (5rem) directly on opponent cards, grey overlay on initiating player, and styled "RETURN TO GAME" button
+- **Enhanced Life Change Animations**: Increased animation size to 3rem and repositioned to top-left of life totals for better visibility and cleaner layout
 - **Enhanced Life Total Display**: Increased life total font size from 4.5rem to 6rem for much better visibility and readability
-- **Fixed Commander Damage Logic**: Corrected swipe gesture behavior - swiping on a player now shows OTHER players with +/- controls to track damage dealt TO them (not received FROM them)
+- **Perfected Commander Damage Logic**: Corrected swipe gesture behavior - swiping on your card shows opponent cards with intuitive +/- controls to track damage received FROM them
 - **Improved Timer Visibility**: Made turn/timer display larger (1.125rem), more prominent with better styling, higher z-index for guaranteed clickability
 - **Safari Mobile Compatibility**: Added Safari-specific PWA support with minimal-ui viewport, 180x180 touch icons, and startup image meta tags
 - **Mobile Viewport Fix**: Replaced 100vh with 100dvh (dynamic viewport height) to prevent bottom content cutoff on mobile browsers with dynamic UI
@@ -153,5 +155,6 @@ npm run eject      # No longer available (was CRA-specific)
 - Life change animations positioned to avoid visual overlap with life totals
 - Active player indicator uses subtle golden glow effect for clear turn tracking
 - Enhanced life total display with 6rem font size for optimal mobile readability
-- Commander damage tracking correctly flows: swipe player → select targets → add damage dealt TO them
+- Commander damage tracking with intuitive flow: swipe your card → opponent cards show large +/- controls → track damage received FROM them
+- Life change animations positioned at top-left of life totals with 3rem size for clear feedback
 - Safari PWA fully compatible with proper meta tags and dynamic viewport handling

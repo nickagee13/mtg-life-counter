@@ -1668,13 +1668,13 @@ const endGame = async () => {
                         className="life-change-animation"
                         style={{
                           position: 'absolute',
-                          top: '50%',
-                          left: '-2rem',
-                          transform: 'translateY(-50%)',
-                          fontSize: '2rem',
+                          top: '-1rem',
+                          left: '-1rem',
+                          transform: 'translate(0, 0)',
+                          fontSize: '3rem',
                           fontWeight: 'bold',
                           color: lifeChanges[player.id] > 0 ? '#10b981' : '#ef4444',
-                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                          textShadow: '3px 3px 6px rgba(0,0,0,0.8)',
                           pointerEvents: 'none',
                           zIndex: 10
                         }}
@@ -1727,7 +1727,101 @@ const endGame = async () => {
                     </>
                   )}
                   
-                  {/* Commander Damage Mode Overlay - Show other players when this player's commander deals damage */}
+                  {/* Commander Damage Controls - Show +/- buttons when another player swiped */}
+                  {commanderDamageMode !== null && commanderDamageMode !== player.id && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      display: 'flex',
+                      gap: '1.5rem',
+                      zIndex: 10,
+                      alignItems: 'center'
+                    }}>
+                      <button
+                        onClick={() => updateCommanderDamage(commanderDamageMode, player.id, -1)}
+                        style={{
+                          width: '5rem',
+                          height: '5rem',
+                          borderRadius: '1rem',
+                          backgroundColor: '#ef4444',
+                          border: '3px solid rgba(255,255,255,0.9)',
+                          color: 'white',
+                          fontSize: '3rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.4)',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseDown={(e) => {
+                          e.target.style.transform = 'scale(0.95)';
+                        }}
+                        onMouseUp={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      >
+                        -
+                      </button>
+                      <div style={{
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        borderRadius: '1.5rem',
+                        padding: '1rem 1.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: '4rem',
+                        border: '3px solid rgba(255,255,255,0.6)',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.4)'
+                      }}>
+                        <span style={{
+                          fontSize: '2rem',
+                          fontWeight: 'bold',
+                          color: 'white'
+                        }}>
+                          {getCommanderDamageFrom(commanderDamageMode, player.id)}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => updateCommanderDamage(commanderDamageMode, player.id, 1)}
+                        style={{
+                          width: '5rem',
+                          height: '5rem',
+                          borderRadius: '1rem',
+                          backgroundColor: '#22c55e',
+                          border: '3px solid rgba(255,255,255,0.9)',
+                          color: 'white',
+                          fontSize: '3rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.4)',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseDown={(e) => {
+                          e.target.style.transform = 'scale(0.95)';
+                        }}
+                        onMouseUp={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Grey overlay for player in commander damage mode */}
                   {commanderDamageMode === player.id && (
                     <div style={{
                       position: 'absolute',
@@ -1735,124 +1829,64 @@ const endGame = async () => {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      backgroundColor: 'rgba(0,0,0,0.9)',
+                      backgroundColor: 'rgba(0,0,0,0.7)',
                       borderRadius: '1rem',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      zIndex: 5
+                      zIndex: 15
                     }}>
-                      <div style={{
-                        position: 'absolute',
-                        top: '1rem',
-                        right: '1rem',
-                        cursor: 'pointer',
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold'
-                      }}
-                      onClick={() => setCommanderDamageMode(null)}
-                      >
-                        ✕
-                      </div>
-                      
                       <div style={{
                         textAlign: 'center',
                         marginBottom: '2rem'
                       }}>
                         <div style={{
-                          fontSize: '1.25rem',
+                          fontSize: '1.5rem',
                           fontWeight: 'bold',
-                          marginBottom: '0.5rem'
+                          marginBottom: '0.5rem',
+                          color: 'white',
+                          textTransform: 'uppercase'
                         }}>
                           COMMANDER DAMAGE
                         </div>
                         <div style={{
                           fontSize: '1rem',
-                          opacity: 0.8
+                          opacity: 0.8,
+                          color: 'white'
                         }}>
-                          {player.name.toUpperCase()} RECEIVED FROM OTHER PLAYERS
+                          Select opponent cards to track damage
                         </div>
                       </div>
                       
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                        gap: '1rem',
-                        width: '100%',
-                        padding: '0 1rem'
-                      }}>
-                        {players.filter(p => p.id !== player.id).map(otherPlayer => {
-                          const damage = getCommanderDamageFrom(player.id, otherPlayer.id);
-                          return (
-                            <div key={otherPlayer.id} style={{
-                              textAlign: 'center',
-                              padding: '1rem',
-                              backgroundColor: 'rgba(255,255,255,0.1)',
-                              borderRadius: '0.5rem'
-                            }}>
-                              <div style={{
-                                fontSize: '0.875rem',
-                                marginBottom: '0.5rem',
-                                opacity: 0.8
-                              }}>
-                                {otherPlayer.name}
-                              </div>
-                              <div style={{
-                                fontSize: '2rem',
-                                fontWeight: 'bold',
-                                marginBottom: '0.5rem'
-                              }}>
-                                {damage}
-                              </div>
-                              <div style={{
-                                display: 'flex',
-                                gap: '0.5rem',
-                                justifyContent: 'center'
-                              }}>
-                                <button
-                                  onClick={() => updateCommanderDamage(player.id, otherPlayer.id, -1)}
-                                  style={{
-                                    width: '2rem',
-                                    height: '2rem',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'rgba(255,255,255,0.2)',
-                                    border: '1px solid rgba(255,255,255,0.3)',
-                                    color: 'white',
-                                    fontSize: '1rem',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                  }}
-                                >
-                                  -
-                                </button>
-                                <button
-                                  onClick={() => updateCommanderDamage(player.id, otherPlayer.id, 1)}
-                                  style={{
-                                    width: '2rem',
-                                    height: '2rem',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'rgba(255,255,255,0.2)',
-                                    border: '1px solid rgba(255,255,255,0.3)',
-                                    color: 'white',
-                                    fontSize: '1rem',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                  }}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <button
+                        onClick={() => setCommanderDamageMode(null)}
+                        style={{
+                          backgroundColor: '#fbbf24',
+                          color: '#1f2937',
+                          border: 'none',
+                          borderRadius: '2rem',
+                          padding: '1rem 2rem',
+                          fontSize: '1.125rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.025em',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseDown={(e) => {
+                          e.target.style.transform = 'scale(0.95)';
+                        }}
+                        onMouseUp={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                      >
+                        RETURN TO GAME
+                      </button>
                     </div>
                   )}
                 </div>
