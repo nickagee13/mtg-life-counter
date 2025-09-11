@@ -1,25 +1,58 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "MTG Life Counter",
+  "name": "Magic: The Gathering Life Counter",
+  "description": "Track life totals and commander damage for Magic: The Gathering games",
   "icons": [
     {
       "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "sizes": "16x16 24x24 32x32 64x64",
       "type": "image/x-icon"
     },
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "any",
+  "theme_color": "#1a1a1a",
+  "background_color": "#1a1a1a",
+  "categories": ["games", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "display_override": ["standalone", "minimal-ui", "browser"]
 }

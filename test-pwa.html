@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .pass { background: #2d5a2d; }
+        .fail { background: #5a2d2d; }
+        .info { background: #2d3d5a; }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>MTG Life Counter - PWA Test</h1>
+    <div id="results"></div>
+    <button id="install-btn" style="display: none;">Install PWA</button>
+    
+    <script>
+        const results = document.getElementById('results');
+        const installBtn = document.getElementById('install-btn');
+        let deferredPrompt;
+        
+        function addResult(message, status) {
+            const div = document.createElement('div');
+            div.className = `test-result ${status}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        // Test Service Worker support
+        if ('serviceWorker' in navigator) {
+            addResult('✓ Service Worker supported', 'pass');
+            
+            // Register service worker
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    addResult('✓ Service Worker registered successfully', 'pass');
+                    console.log('SW registered:', registration);
+                })
+                .catch(error => {
+                    addResult('✗ Service Worker registration failed: ' + error.message, 'fail');
+                    console.error('SW registration failed:', error);
+                });
+        } else {
+            addResult('✗ Service Worker not supported', 'fail');
+        }
+        
+        // Test Web App Manifest
+        fetch('/manifest.json')
+            .then(response => response.json())
+            .then(manifest => {
+                addResult('✓ Web App Manifest loaded successfully', 'pass');
+                addResult(`App Name: ${manifest.name}`, 'info');
+                addResult(`Display Mode: ${manifest.display}`, 'info');
+                addResult(`Theme Color: ${manifest.theme_color}`, 'info');
+                addResult(`Icons: ${manifest.icons.length} defined`, 'info');
+            })
+            .catch(error => {
+                addResult('✗ Web App Manifest failed to load: ' + error.message, 'fail');
+            });
+        
+        // Test PWA installability
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            addResult('✓ PWA install prompt available', 'pass');
+            installBtn.style.display = 'block';
+        });
+        
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                addResult(`Install prompt result: ${outcome}`, 'info');
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            }
+        });
+        
+        // Check if already installed
+        window.addEventListener('appinstalled', () => {
+            addResult('✓ PWA installed successfully!', 'pass');
+        });
+        
+        // Test offline capability
+        window.addEventListener('online', () => {
+            addResult('✓ Back online', 'pass');
+        });
+        
+        window.addEventListener('offline', () => {
+            addResult('⚠ Offline - testing cache functionality', 'info');
+        });
+        
+        // Additional PWA checks
+        setTimeout(() => {
+            // Check if running as PWA
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                addResult('✓ Running in standalone mode (PWA)', 'pass');
+            } else {
+                addResult('ℹ Running in browser mode', 'info');
+            }
+            
+            // Check manifest link
+            const manifestLink = document.querySelector('link[rel="manifest"]');
+            if (manifestLink) {
+                addResult('✓ Manifest link found in HTML', 'pass');
+            } else {
+                addResult('✗ Manifest link missing from HTML', 'fail');
+            }
+            
+            // Check theme color meta tag
+            const themeColor = document.querySelector('meta[name="theme-color"]');
+            if (themeColor) {
+                addResult(`✓ Theme color meta tag: ${themeColor.content}`, 'pass');
+            } else {
+                addResult('✗ Theme color meta tag missing', 'fail');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
