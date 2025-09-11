@@ -733,7 +733,11 @@ const endGame = async () => {
       <div style={{ 
         minHeight: '100vh', 
         backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
-        padding: '1rem'
+        padding: '1rem',
+        paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
+        paddingTop: 'calc(1rem + env(safe-area-inset-top))',
+        paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+        paddingRight: 'calc(1rem + env(safe-area-inset-right))'
       }}>
         <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
           {/* Dark mode toggle */}
@@ -1515,13 +1519,17 @@ const endGame = async () => {
         minHeight: '100vh', 
         backgroundColor: darkMode ? '#2d3748' : '#f7fafc', 
         padding: '0.25rem',
+        paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom))',
+        paddingTop: 'calc(0.25rem + env(safe-area-inset-top))',
+        paddingLeft: 'calc(0.25rem + env(safe-area-inset-left))',
+        paddingRight: 'calc(0.25rem + env(safe-area-inset-right))',
         overflow: 'hidden',
         position: 'relative'
       }}>
         <div style={{ 
           maxWidth: selectedLayout === '2-horizontal' ? 'none' : '48rem', 
           margin: '0 auto', 
-          height: '100vh', 
+          height: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))', 
           display: 'flex', 
           flexDirection: 'column',
           width: selectedLayout === '2-horizontal' ? '100%' : 'auto'
@@ -1586,15 +1594,23 @@ const endGame = async () => {
                         position: 'absolute',
                         top: '1rem',
                         right: '1rem',
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        borderRadius: '0.5rem',
-                        padding: '0.5rem',
-                        fontSize: '0.875rem',
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        borderRadius: '0.75rem',
+                        padding: '0.75rem 1rem',
+                        fontSize: '1rem',
                         fontWeight: 'bold',
                         cursor: 'pointer',
                         userSelect: 'none',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        zIndex: 1000,
+                        border: '2px solid rgba(255,255,255,0.3)',
+                        backdropFilter: 'blur(8px)',
+                        transition: 'all 0.2s ease',
+                        minWidth: '80px',
+                        pointerEvents: 'auto'
                       }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
                     >
                       <div>TURN {currentTurn}</div>
                       <div>{formatTime(elapsedTime)}</div>
