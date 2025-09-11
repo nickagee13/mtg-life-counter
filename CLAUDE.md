@@ -60,6 +60,11 @@ mtg-life-counter/
 **Recently completed**: Major UX improvements with enhanced mobile interface and streamlined interaction system:
 
 ### Latest Improvements (January 2025)
+- **Enhanced Life Total Display**: Increased life total font size from 4.5rem to 6rem for much better visibility and readability
+- **Fixed Commander Damage Logic**: Corrected swipe gesture behavior - swiping on a player now shows OTHER players with +/- controls to track damage dealt TO them (not received FROM them)
+- **Improved Timer Visibility**: Made turn/timer display larger (1.125rem), more prominent with better styling, higher z-index for guaranteed clickability
+- **Safari Mobile Compatibility**: Added Safari-specific PWA support with minimal-ui viewport, 180x180 touch icons, and startup image meta tags
+- **Mobile Viewport Fix**: Replaced 100vh with 100dvh (dynamic viewport height) to prevent bottom content cutoff on mobile browsers with dynamic UI
 - **Streamlined Life Counter Interface**: Removed visible +/- buttons and implemented invisible tap zones
   - Left half of player card = decrease life (-1, right-click for -5)
   - Right half of player card = increase life (+1, right-click for +5)
@@ -98,6 +103,10 @@ mtg-life-counter/
 - [x] **Life Change Animations**: Visual feedback for life total changes
 - [x] **Active Player Highlighting**: Golden glow effect for current turn
 - [x] **Orientation-Independent Layout**: Consistent 2-player landscape mode
+- [x] **Enhanced Life Total Visibility**: Larger 6rem font size for better readability
+- [x] **Corrected Commander Damage Flow**: Fixed swipe logic to show damage dealt TO other players
+- [x] **Safari Mobile Support**: Full PWA compatibility with Safari-specific optimizations
+- [x] **Dynamic Viewport Handling**: Mobile-friendly viewport using dvh units
 - [ ] **Game History**: Display past games from Supabase database
 - [ ] **Player Statistics**: Track win rates and game performance
 - [ ] **Export Game Data**: Allow users to export game results
@@ -143,3 +152,6 @@ npm run eject      # No longer available (was CRA-specific)
 - Commander artwork automatically displays as player card backgrounds when selected
 - Life change animations positioned to avoid visual overlap with life totals
 - Active player indicator uses subtle golden glow effect for clear turn tracking
+- Enhanced life total display with 6rem font size for optimal mobile readability
+- Commander damage tracking correctly flows: swipe player → select targets → add damage dealt TO them
+- Safari PWA fully compatible with proper meta tags and dynamic viewport handling

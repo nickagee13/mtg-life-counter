@@ -1652,7 +1652,7 @@ const endGame = async () => {
                   
                   {/* Life Total */}
                   <div style={{ 
-                    fontSize: '4.5rem', 
+                    fontSize: '6rem', 
                     fontWeight: 'bold', 
                     lineHeight: '1',
                     textAlign: 'center',
@@ -1727,7 +1727,7 @@ const endGame = async () => {
                     </>
                   )}
                   
-                  {/* Commander Damage Mode Overlay */}
+                  {/* Commander Damage Mode Overlay - Show other players when this player's commander deals damage */}
                   {commanderDamageMode === player.id && (
                     <div style={{
                       position: 'absolute',
@@ -1765,13 +1765,13 @@ const endGame = async () => {
                           fontWeight: 'bold',
                           marginBottom: '0.5rem'
                         }}>
-                          COMMANDER
+                          {player.name.toUpperCase()}'S COMMANDER
                         </div>
                         <div style={{
                           fontSize: '1rem',
                           opacity: 0.8
                         }}>
-                          DAMAGE YOU'VE RECEIVED
+                          DAMAGE DEALT TO OTHER PLAYERS
                         </div>
                       </div>
                       
@@ -1783,7 +1783,7 @@ const endGame = async () => {
                         padding: '0 1rem'
                       }}>
                         {players.filter(p => p.id !== player.id).map(otherPlayer => {
-                          const damage = getCommanderDamageFrom(player.id, otherPlayer.id);
+                          const damage = getCommanderDamageFrom(otherPlayer.id, player.id);
                           return (
                             <div key={otherPlayer.id} style={{
                               textAlign: 'center',
@@ -1811,7 +1811,7 @@ const endGame = async () => {
                                 justifyContent: 'center'
                               }}>
                                 <button
-                                  onClick={() => updateCommanderDamage(player.id, otherPlayer.id, -1)}
+                                  onClick={() => updateCommanderDamage(otherPlayer.id, player.id, -1)}
                                   style={{
                                     width: '2rem',
                                     height: '2rem',
@@ -1830,7 +1830,7 @@ const endGame = async () => {
                                   -
                                 </button>
                                 <button
-                                  onClick={() => updateCommanderDamage(player.id, otherPlayer.id, 1)}
+                                  onClick={() => updateCommanderDamage(otherPlayer.id, player.id, 1)}
                                   style={{
                                     width: '2rem',
                                     height: '2rem',
