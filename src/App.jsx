@@ -134,6 +134,7 @@ const MTGCommanderTracker = () => {
   const [commanderDamageMode, setCommanderDamageMode] = useState(null); // null or player index
   const [touchStart, setTouchStart] = useState(null);
   const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
+  const [pendingLifeChange, setPendingLifeChange] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [firstPlayerRoll, setFirstPlayerRoll] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
@@ -236,8 +237,20 @@ const MTGCommanderTracker = () => {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
     // If finger has moved significantly, consider it a swipe in progress
-    if (distance > 30) {
+    if (distance > 20) {
       setIsSwipeInProgress(true);
+      // Cancel any pending life changes
+      if (pendingLifeChange) {
+        clearTimeout(pendingLifeChange);
+        setPendingLifeChange(null);
+      }
+    }
+
+    // Early swipe detection for horizontal movement
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 25) {
+      setCommanderDamageMode(playerId);
+      setIsSwipeInProgress(true);
+      e.preventDefault();
     }
   };
 
@@ -259,6 +272,12 @@ const MTGCommanderTracker = () => {
 
     setTouchStart(null);
     setIsSwipeInProgress(false);
+
+    // Clean up any pending life changes
+    if (pendingLifeChange) {
+      clearTimeout(pendingLifeChange);
+      setPendingLifeChange(null);
+    }
   };
 
   // Commander damage functions
@@ -1790,7 +1809,11 @@ const endGame = async () => {
                       <div
                         onPointerDown={(e) => {
                           if (!isSwipeInProgress) {
-                            changeLife(player.id, -1);
+                            // Delay life change to allow swipe detection
+                            const timeout = setTimeout(() => {
+                              changeLife(player.id, -1);
+                            }, 150);
+                            setPendingLifeChange(timeout);
                           }
                         }}
                         onContextMenu={(e) => {
@@ -1815,7 +1838,11 @@ const endGame = async () => {
                       <div
                         onPointerDown={(e) => {
                           if (!isSwipeInProgress) {
-                            changeLife(player.id, 1);
+                            // Delay life change to allow swipe detection
+                            const timeout = setTimeout(() => {
+                              changeLife(player.id, 1);
+                            }, 150);
+                            setPendingLifeChange(timeout);
                           }
                         }}
                         onContextMenu={(e) => {
