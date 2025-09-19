@@ -251,7 +251,7 @@ const MTGCommanderTracker = () => {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
     // Check if it's a significant horizontal swipe (not vertical scroll or quick tap)
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 80 && distance > 80 && timeDelta > 200) {
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50 && distance > 50 && timeDelta > 100) {
       // Swipe detected - enter commander damage mode for this player
       setCommanderDamageMode(playerId);
       e.preventDefault(); // Prevent any other touch events
