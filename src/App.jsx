@@ -125,7 +125,7 @@ const MTGCommanderTrackerInner = () => {
   }, []);
 
   // Game states: 'profile', 'setup', 'layout', 'playing', 'finished', 'stats'
-  const [gameState, setGameState] = useState('profile');
+  const [gameState, setGameState] = useState('setup');
   const [selectedLayout, setSelectedLayout] = useState(null);
   const [players, setPlayers] = useState([]);
   const [currentTurn, setCurrentTurn] = useState(1);

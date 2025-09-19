@@ -1,35 +1,53 @@
-# MTG Life Counter - Project Overview
+# MTG Life Counter - Project Documentation
 
-## What This Project Does
-A responsive web application for tracking life totals and commander damage in Magic: The Gathering games. Features player setup with commander search via Scryfall API, multiple layout options for different player counts, real-time life tracking with animations, commander damage matrix, game timer, and dark/light mode support.
+## Project Overview
+A comprehensive web application for tracking life totals and commander damage in Magic: The Gathering games. Features complete player profile management, Supabase backend integration, commander search via Scryfall API, multiple layout options, real-time life tracking with animations, commander damage matrix, game statistics tracking, and professional PWA support.
 
-## Current File Structure
+## Current File Structure (Updated September 19, 2025)
 ```
 mtg-life-counter/
-├── index.html                   # Main HTML entry point (moved from public/ for Vite)
-├── vite.config.js              # Vite configuration
-├── package.json                # Dependencies and scripts
-├── public/                     # Static assets
+├── index.html                          # Main HTML entry point
+├── vite.config.js                     # Vite configuration
+├── netlify.toml                       # Netlify deployment config
+├── package.json                       # Dependencies and scripts
+├── CLAUDE.md                          # Project documentation
+├── README.md                          # Basic project info
+├── public/                            # Static assets
 │   ├── favicon.ico
-│   ├── manifest.json
-│   └── logo192.png
+│   ├── manifest.json                  # PWA manifest
+│   ├── sw.js                         # Service worker
+│   ├── mtg-logo-192x192.png          # PWA icons
+│   ├── mtg-logo-180x180.png
+│   └── mtg-logo-512x512.png
 ├── src/
-│   ├── index.jsx               # Application entry point (renamed from .js)
-│   ├── App.jsx                 # Main application component (renamed from .js)
-│   ├── App.css                 # Application styles
-│   ├── index.css               # Global styles
-│   ├── lib/
-│   │   └── supabase.js         # Supabase database client
-│   ├── assets/images/          # Mana color images
+│   ├── index.jsx                     # Application entry point
+│   ├── App.jsx                       # Main application component (2300+ lines)
+│   ├── App.css                       # Application styles
+│   ├── index.css                     # Global styles
+│   ├── components/                   # React components
+│   │   ├── GameCompleteScreen.jsx    # Game completion and results
+│   │   ├── ProfileManager.jsx        # User profile management
+│   │   └── StatsScreen.jsx           # Statistics and game history
+│   ├── contexts/                     # React contexts
+│   │   └── ProfileContext.jsx        # Profile state management
+│   ├── lib/                          # Utility libraries
+│   │   ├── supabase.js               # Supabase client setup
+│   │   └── supabase-queries.js       # Database query functions
+│   ├── assets/images/                # Mana color assets
 │   │   ├── white.jpeg
 │   │   ├── blue.jpeg
 │   │   ├── black.jpeg
 │   │   ├── red.png
-│   │   └── green.png
-│   ├── Matrix-Bold.ttf         # Custom font file
-│   └── windsorbtelongated.TTF  # Custom font file
-├── build/                      # Vite production build output
-└── node_modules/               # Dependencies
+│   │   ├── green.png
+│   │   └── hotchi-motchi-logo.png
+│   ├── Matrix-Bold.ttf               # MTG-themed fonts
+│   ├── windsorbtelongated.TTF
+│   ├── pwaUtils.js                   # PWA utilities
+│   ├── reportWebVitals.js            # Performance monitoring
+│   └── setupTests.js                 # Test configuration
+├── build/                             # Production build output
+├── .netlify/                          # Netlify deployment state
+└── node_modules/                      # Dependencies
 ```
 
 ## Main Technologies Used
@@ -278,3 +296,14 @@ npm run eject      # No longer available (was CRA-specific)
 - Commander damage tracking with intuitive flow: swipe your card → opponent cards show large +/- controls → track damage received FROM them
 - Life change animations positioned at top-left of life totals with 3rem size for clear feedback
 - Safari PWA fully compatible with proper meta tags and dynamic viewport handling
+
+---
+
+## Document Status
+**Last Updated**: September 19, 2025
+**Status**: ✅ Fully Current - App verified functional and deployed
+**Next Review**: When significant features are added or major changes occur
+
+---
+
+*This documentation reflects the current state of the MTG Life Counter application as of September 19, 2025. All major systems are functional, tested, and deployed to production at https://mtg-life-counter-na.netlify.app/*
