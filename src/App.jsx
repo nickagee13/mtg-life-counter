@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6 } from 'lucide-react';
+import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6, Users } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import { ProfileProvider, useProfile } from './contexts/ProfileContext';
+import GameCompleteScreen from './components/GameCompleteScreen';
+import StatsScreen from './components/StatsScreen';
+import ProfileManager from './components/ProfileManager';
 import './App.css';
 
 // Import mana color images
@@ -13,7 +17,8 @@ import greenImage from './assets/images/green.png';
 // Import font
 import matrixBoldFont from './Matrix-Bold.ttf';
 
-const MTGCommanderTracker = () => {
+const MTGCommanderTrackerInner = () => {
+  const { currentProfile } = useProfile();
   // Prevent orientation-based layout changes
   React.useEffect(() => {
     // Add CSS to maintain static layouts regardless of device orientation
@@ -119,8 +124,8 @@ const MTGCommanderTracker = () => {
     return () => document.head.removeChild(style);
   }, []);
 
-  // Game states: 'setup', 'layout', 'playing', 'finished'
-  const [gameState, setGameState] = useState('setup');
+  // Game states: 'profile', 'setup', 'layout', 'playing', 'finished', 'stats'
+  const [gameState, setGameState] = useState('profile');
   const [selectedLayout, setSelectedLayout] = useState(null);
   const [players, setPlayers] = useState([]);
   const [currentTurn, setCurrentTurn] = useState(1);
@@ -142,6 +147,7 @@ const MTGCommanderTracker = () => {
   const [searchResults, setSearchResults] = useState({}); // Store search results for each player
   const [searchLoading, setSearchLoading] = useState({}); // Track loading state for each player
   const [failedImages, setFailedImages] = useState(new Set()); // Track failed commander images
+  const [showProfileManager, setShowProfileManager] = useState(false);
 
   // Timer effect
   useEffect(() => {
@@ -605,6 +611,29 @@ const endGame = async () => {
   }
 };
 
+  // Handle quick rematch (same players)
+  const quickRematch = () => {
+    // Reset game state but keep players
+    setPlayers(players.map(p => ({
+      ...p,
+      life: 40,
+      eliminated: false,
+      eliminatedTurn: null
+    })));
+    setGameState('layout');
+    setCurrentTurn(1);
+    setActivePlayerIndex(firstPlayerRoll !== null ? firstPlayerRoll : 0);
+    setGameStartTime(null);
+    setElapsedTime(0);
+    setCommanderDamage({});
+    setLifeChanges({});
+  };
+
+  // View stats screen
+  const viewStats = () => {
+    setGameState('stats');
+  };
+
   // Reset for new game
   const newGame = (keepPlayers = false) => {
     if (keepPlayers) {
@@ -787,14 +816,36 @@ const endGame = async () => {
   // Render game setup screen
   if (gameState === 'setup') {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
+      <div style={{
+        minHeight: '100vh',
         backgroundColor: darkMode ? '#2d3748' : '#f7fafc',
         padding: '1rem'
       }}>
         <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-          {/* Dark mode toggle */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+          {/* Header controls */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            {/* Profile button */}
+            <button
+              onClick={() => setShowProfileManager(true)}
+              style={{
+                padding: '0.5rem',
+                borderRadius: '0.5rem',
+                backgroundColor: darkMode ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)',
+                border: `2px solid ${darkMode ? '#8b5cf6' : '#8b5cf6'}`,
+                color: darkMode ? '#8b5cf6' : '#8b5cf6',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <Users size={16} />
+              <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>
+                {currentProfile ? currentProfile.display_name : 'Select Profile'}
+              </span>
+            </button>
+
+            {/* Dark mode toggle */}
             <button
               onClick={() => setDarkMode(!darkMode)}
               style={{
@@ -1233,6 +1284,17 @@ const endGame = async () => {
               </button>
             </div>
           </div>
+
+          {/* Profile Manager Modal */}
+          {showProfileManager && (
+            <ProfileManager
+              darkMode={darkMode}
+              onClose={() => setShowProfileManager(false)}
+              onProfileSelected={(profile) => {
+                console.log('Profile selected:', profile);
+              }}
+            />
+          )}
         </div>
       </div>
     );
@@ -2203,6 +2265,41 @@ const endGame = async () => {
       </div>
     );
   }
+
+  // Render finished game screen
+  if (gameState === 'finished') {
+    return (
+      <GameCompleteScreen
+        players={players}
+        currentTurn={currentTurn}
+        elapsedTime={elapsedTime}
+        commanderDamage={commanderDamage}
+        darkMode={darkMode}
+        onNewGame={() => newGame(false)}
+        onQuickRematch={quickRematch}
+        onViewStats={viewStats}
+      />
+    );
+  }
+
+  // Render stats screen
+  if (gameState === 'stats') {
+    return (
+      <StatsScreen
+        darkMode={darkMode}
+        onBack={() => setGameState('finished')}
+      />
+    );
+  }
+};
+
+// Main App component with ProfileProvider wrapper
+const MTGCommanderTracker = () => {
+  return (
+    <ProfileProvider>
+      <MTGCommanderTrackerInner />
+    </ProfileProvider>
+  );
 };
 
 export default MTGCommanderTracker;
