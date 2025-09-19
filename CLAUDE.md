@@ -59,7 +59,7 @@ mtg-life-counter/
 ## Current Focus
 **Recently completed**: Major UX improvements with enhanced mobile interface and streamlined interaction system:
 
-### Latest Improvements (January 2025)
+### Latest Improvements (September 2025)
 - **Polished Commander Damage Interface**: Redesigned with large, prominent +/- controls (5rem) directly on opponent cards, grey overlay on initiating player, and styled "RETURN TO GAME" button
 - **Enhanced Life Change Animations**: Increased animation size to 3rem and repositioned to top-left of life totals for better visibility and cleaner layout
 - **Enhanced Life Total Display**: Increased life total font size from 4.5rem to 6rem for much better visibility and readability
@@ -88,49 +88,78 @@ mtg-life-counter/
 - Converted file structure and build configuration for Vite compatibility
 - Updated all import paths and environment variables for Vite standards
 
-## Current Session Progress (September 11, 2025)
+## Current Session Progress (September 19, 2025)
 
-### Recently Completed
+### Session Overview: UI Polish & Game Logic Enhancement
+This session focused on major UI improvements, replacing emojis with Lucide icons, timer redesign, life change animations, and implementing game over logic.
+
+### Major Achievements Completed
+
+#### 🎨 **UI Design Polish**
+- [x] **Timer Redesign**: Complete overhaul to sleek horizontal layout
+  - Removed "TURN" text, now shows clean format: `2 | 0:07`
+  - Added vertical separator line between turn and timer
+  - Resized to 110px × 70px rectangle for better proportions
+  - Increased font size to 1.375rem for better visibility
+  - Positioned in bottom-right corner for both players
+
+- [x] **Life Total Display Enhancement**
+  - Increased font size from 6rem → 7rem → 8rem → 9rem
+  - Much more prominent and readable across the table
+  - Enhanced player name size from 1.25rem → 1.5rem
+
+- [x] **Life Change Animation Improvements**
+  - Extended timeout from 2 seconds to 10 seconds for bigger damage
+  - Fixed both JavaScript setTimeout AND CSS animation duration
+  - **Smart Positioning**: Negative changes (damage) appear top-left, positive changes (healing) appear top-right
+  - Better visual distinction between damage and healing
+
+#### 🎯 **Game Logic Features**
+- [x] **Player Elimination System**
+  - Grey overlay with "ELIMINATED" text when player reaches 0 life
+  - Covers entire player card with semi-transparent black overlay
+  - Clear visual indicator of eliminated players
+
+- [x] **Automatic Game Over Detection**
+  - Monitors players in real-time during gameplay
+  - Automatically detects when only 1 player remains alive
+  - Shows confirmation dialog: "Game Over! [Winner] wins!"
+  - Option to end game or continue playing
+
+#### 🚀 **Icon System Standardization**
+- [x] **Complete Emoji Replacement with Lucide Icons**
+  - **Commander Damage**: ⚔️ → `<Swords size={16} />` with proper spacing
+  - **Settings Buttons**:
+    - 🌙/☀️ → `<Moon size={18} />` / `<Sun size={18} />`
+    - 🔄 → `<RotateCw size={18} />`
+    - 🏁 → `<X size={18} />`
+  - Consistent sizing, spacing, and professional appearance
+
+#### ⚙️ **Settings Menu Enhancement**
+- [x] **Visual Improvements**
+  - Settings button border changed from orange to silver for cleaner look
+  - "Game Settings" title increased to 1.75rem and properly centered
+  - All button text increased to 1.125rem with centered alignment
+  - "RETURN TO GAME" button made more bold (font-weight: 900) and larger
+
+- [x] **Functionality Verification**
+  - Confirmed "Change Layout" preserves game state during layout switches
+  - All settings properly maintain game progress
+
+#### 🔧 **Commander Damage Interface**
+- [x] **Timer Z-Index Fix**
+  - Reduced timer z-index from 200 to 10
+  - Ensures timer appears behind commander damage overlay (z-index: 15)
+  - Clean interaction without visual interference
+
+### Previously Completed Features
 - [x] **Enhanced Timer Interface**: Made turn timer larger and more prominent
-  - Increased font size from 1.125rem to 1.5rem
-  - Enhanced padding, border radius, and shadows
-  - Increased z-index to 200 to prevent conflicts
-  - Added clip-path to right tap zone to avoid interference
-
-### In Progress - Card Preview Feature
-**Status**: Implementation complete, but not displaying due to HMR/WebSocket issues
-
-**What was implemented**:
-- Added `CreditCard` icon import from Lucide React
-- Created card preview component with hover functionality
-- Positioned in keywords section (next to "Commander ninjutsu" text)
-- Uses existing `player.commanderImage` from Scryfall API
-- Includes error handling and fallback messages
-- Styled tooltip with dark/light mode support
-
-**Current Issue**:
-- Vite HMR (Hot Module Replacement) WebSocket connections failing
-- Changes not being applied to browser despite server restarts
-- Debug logs not appearing in console
-- Bright blue test button not visible (should be obvious if working)
-
-**Code Location**: 
-- Card preview icon: `src/App.jsx` lines ~1095-1181
-- Positioned in the keywords display section after "Commander ninjutsu"
-- Condition: `player.commander && player.commanderImage`
-
-**Next Steps for Card Preview**:
-1. **Debug HMR issue**: Investigate Vite WebSocket connection problems
-2. **Hard refresh test**: Try Ctrl+F5 or clearing browser cache
-3. **Console debugging**: Check for JavaScript errors preventing render
-4. **Condition verification**: Ensure `player.commanderImage` is being set properly
-5. **Fallback approach**: If HMR continues failing, try full server restart and build
-
-**Technical Details**:
-- Preview shows 200px wide card image
-- Positioned to left of icon to avoid screen edge
-- High z-index (1000) for proper layering
-- Error handling if Scryfall image fails to load
+- [x] **Polished Commander Damage Interface**: Large +/- controls with grey overlay
+- [x] **Enhanced Life Change Animations**: 3rem size, repositioned for clarity
+- [x] **Enhanced Life Total Display**: 6rem font size for optimal readability
+- [x] **Commander Damage Flow**: Intuitive swipe-to-damage interaction
+- [x] **Safari PWA Compatibility**: Full mobile support with dynamic viewport
+- [x] **Streamlined Life Counter Interface**: Invisible tap zones for cleaner UI
 
 ## Next Steps
 

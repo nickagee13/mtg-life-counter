@@ -83,7 +83,7 @@ const MTGCommanderTracker = () => {
       }
       
       .life-change-animation {
-        animation: fadeInOut 2s ease-out forwards;
+        animation: fadeInOut 10s ease-out forwards;
       }
       
       /* Force landscape-style layout for 2-player horizontal mode */
@@ -151,6 +151,22 @@ const MTGCommanderTracker = () => {
     }
     return () => clearInterval(interval);
   }, [gameState, gameStartTime]);
+
+  // Check for game over condition
+  useEffect(() => {
+    if (gameState === 'playing' && players.length > 1) {
+      const alivePlayers = players.filter(player => player.life > 0);
+
+      if (alivePlayers.length === 1) {
+        // Game over - only one player remaining
+        setTimeout(() => {
+          if (confirm(`Game Over! ${alivePlayers[0].name} wins! Would you like to end the game?`)) {
+            endGame();
+          }
+        }, 1000); // Small delay to let the UI update first
+      }
+    }
+  }, [players, gameState]);
 
   // Close search dropdowns when clicking outside
   useEffect(() => {
@@ -458,7 +474,7 @@ const MTGCommanderTracker = () => {
         delete newChanges[playerId];
         return newChanges;
       });
-    }, 2000);
+    }, 10000);
   };
 
 
@@ -1580,31 +1596,72 @@ const endGame = async () => {
                     transition: 'border 0.3s ease, box-shadow 0.3s ease'
                   }}
                 >
+                  {/* Grey overlay for eliminated players (0 life) */}
+                  {player.life <= 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      borderRadius: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 5,
+                      pointerEvents: 'none'
+                    }}>
+                      <div style={{
+                        color: 'white',
+                        fontSize: '2rem',
+                        fontWeight: 'bold',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                        textAlign: 'center'
+                      }}>
+                        ELIMINATED
+                      </div>
+                    </div>
+                  )}
+
                   {/* Turn/Timer Display for Active Player */}
                   {isActive && (
-                    <div 
+                    <div
                       onClick={advanceToNextTurn}
                       style={{
                         position: 'absolute',
-                        top: '1rem',
+                        // Position timers in bottom-right for both players
+                        bottom: '1rem',
                         right: '1rem',
                         backgroundColor: 'rgba(0,0,0,0.9)',
-                        borderRadius: '1.5rem',
-                        padding: '1.5rem',
-                        fontSize: '1.5rem',
+                        borderRadius: '0.75rem',
+                        padding: '0.5rem',
+                        fontSize: '1.375rem',
+                        width: '110px',
+                        height: '70px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         fontWeight: 'bold',
                         cursor: 'pointer',
                         userSelect: 'none',
                         textAlign: 'center',
-                        zIndex: 200,
+                        zIndex: 10,
                         border: '3px solid rgba(255,255,255,0.4)',
                         boxShadow: '0 6px 16px rgba(0,0,0,0.4)',
-                        minWidth: '140px',
                         pointerEvents: 'all'
                       }}
                     >
-                      <div>TURN {currentTurn}</div>
-                      <div>{formatTime(elapsedTime)}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span>{currentTurn}</span>
+                        <div style={{
+                          width: '2px',
+                          height: '1.5rem',
+                          backgroundColor: 'rgba(255,255,255,0.6)'
+                        }}></div>
+                        <span>{formatTime(elapsedTime)}</span>
+                      </div>
                     </div>
                   )}
                   
@@ -1634,7 +1691,10 @@ const endGame = async () => {
                           fontWeight: 'bold',
                           border: '2px solid rgba(255,255,255,0.3)'
                         }}>
-                          ⚔️{totalDamage}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Swords size={16} />
+                            <span>{totalDamage}</span>
+                          </div>
                         </div>
                       );
                     }
@@ -1642,20 +1702,20 @@ const endGame = async () => {
                   })()}
                   
                   {/* Player Name */}
-                  <div style={{ 
-                    fontWeight: 'bold', 
-                    fontSize: '1.25rem', 
-                    marginBottom: '1rem', 
+                  <div style={{
+                    fontWeight: 'bold',
+                    fontSize: '1.5rem',
+                    marginBottom: '1rem',
                     textTransform: 'uppercase',
                     textAlign: 'center',
                     textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
                   }}>
                     {player.name}
                   </div>
-                  
+
                   {/* Life Total */}
-                  <div style={{ 
-                    fontSize: '6rem', 
+                  <div style={{
+                    fontSize: '9rem', 
                     fontWeight: 'bold', 
                     lineHeight: '1',
                     textAlign: 'center',
@@ -1667,12 +1727,16 @@ const endGame = async () => {
                     
                     {/* Life Change Animation */}
                     {lifeChanges[player.id] && (
-                      <div 
+                      <div
                         className="life-change-animation"
                         style={{
                           position: 'absolute',
                           top: '-1rem',
-                          left: '-1rem',
+                          // Position based on positive/negative change
+                          ...(lifeChanges[player.id] > 0
+                            ? { right: '-1rem' }  // Positive (healing) - top-right
+                            : { left: '-1rem' }   // Negative (damage) - top-left
+                          ),
                           transform: 'translate(0, 0)',
                           fontSize: '3rem',
                           fontWeight: 'bold',
@@ -1871,8 +1935,8 @@ const endGame = async () => {
                           border: 'none',
                           borderRadius: '2rem',
                           padding: '1rem 2rem',
-                          fontSize: '1.125rem',
-                          fontWeight: 'bold',
+                          fontSize: '1.375rem',
+                          fontWeight: '900',
                           cursor: 'pointer',
                           textTransform: 'uppercase',
                           letterSpacing: '0.025em',
@@ -1909,7 +1973,7 @@ const endGame = async () => {
               width: '60px',
               height: '60px',
               backgroundColor: darkMode ? '#1a202c' : '#ffffff',
-              border: '3px solid #ff6b35',
+              border: '3px solid #c0c0c0',
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
@@ -1971,7 +2035,7 @@ const endGame = async () => {
                   color: darkMode ? 'white' : '#2d3748',
                   marginBottom: '1.5rem',
                   textAlign: 'center',
-                  fontSize: '1.5rem',
+                  fontSize: '1.75rem',
                   fontWeight: 'bold'
                 }}>
                   Game Settings
@@ -1990,10 +2054,14 @@ const endGame = async () => {
                       border: '1px solid #e2e8f0',
                       borderRadius: '0.5rem',
                       cursor: 'pointer',
-                      fontWeight: '600'
+                      fontWeight: '600',
+                      fontSize: '1.125rem'
                     }}
                   >
-                    {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                      <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                    </div>
                   </button>
                   
                   <button
@@ -2008,10 +2076,14 @@ const endGame = async () => {
                       border: '1px solid #e2e8f0',
                       borderRadius: '0.5rem',
                       cursor: 'pointer',
-                      fontWeight: '600'
+                      fontWeight: '600',
+                      fontSize: '1.125rem'
                     }}
                   >
-                    🔄 Change Layout
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      <RotateCw size={18} />
+                      <span>Change Layout</span>
+                    </div>
                   </button>
                   
                   <button
@@ -2028,10 +2100,14 @@ const endGame = async () => {
                       border: 'none',
                       borderRadius: '0.5rem',
                       cursor: 'pointer',
-                      fontWeight: '600'
+                      fontWeight: '600',
+                      fontSize: '1.125rem'
                     }}
                   >
-                    🏁 End Game
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      <X size={18} />
+                      <span>End Game</span>
+                    </div>
                   </button>
                   
                   <button
