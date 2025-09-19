@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6, CreditCard } from 'lucide-react';
+import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import './App.css';
 
@@ -279,7 +279,6 @@ const MTGCommanderTracker = () => {
           mana_cost: card.mana_cost || '',
           type_line: card.type_line,
           set_name: card.set_name,
-          image_small: card.image_uris?.small || null,
           image_background: card.image_uris?.art_crop || card.image_uris?.border_crop || card.image_uris?.normal || null,
           color_identity: card.color_identity || [],
           oracle_text: card.oracle_text || '',
@@ -320,13 +319,12 @@ const MTGCommanderTracker = () => {
 
   // Select commander from search results
   const selectCommander = (playerId, commander) => {
-    console.log('Selecting commander:', commander.name); // Debug log
     // Update commander name, colors, and background image together
-    setPlayers(players.map(p => 
-      p.id === playerId 
-        ? { 
-            ...p, 
-            commander: commander.name, 
+    setPlayers(players.map(p =>
+      p.id === playerId
+        ? {
+            ...p,
+            commander: commander.name,
             colors: commander.color_identity,
             commanderImage: commander.image_background,
             commanderText: commander.oracle_text,
@@ -1092,95 +1090,6 @@ const endGame = async () => {
                         </div>
                       )}
 
-                      {/* Card preview icon */}
-                      {player.commander && (() => {
-                        console.log('Player:', player.commander, 'Has image:', !!player.commanderImage, 'Image URL:', player.commanderImage);
-                        return true;
-                      })() && (
-                        <div
-                          style={{
-                            cursor: 'pointer',
-                            padding: '0.5rem',
-                            borderRadius: '0.25rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#ffffff',
-                            backgroundColor: '#3b82f6',
-                            position: 'relative'
-                          }}
-                          onMouseEnter={(e) => {
-                            const preview = document.getElementById(`card-preview-${player.id}`);
-                            if (preview) {
-                              preview.style.display = 'block';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            const preview = document.getElementById(`card-preview-${player.id}`);
-                            if (preview) {
-                              preview.style.display = 'none';
-                            }
-                          }}
-                        >
-                          <CreditCard size={16} />
-                          
-                          {/* Card preview tooltip */}
-                          <div
-                            id={`card-preview-${player.id}`}
-                            style={{
-                              display: 'none',
-                              position: 'absolute',
-                              top: '-10px',
-                              right: '100%',
-                              marginRight: '10px',
-                              zIndex: 1000,
-                              backgroundColor: darkMode ? '#2d3748' : '#ffffff',
-                              border: `2px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
-                              borderRadius: '12px',
-                              padding: '0.5rem',
-                              boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-                              width: '200px',
-                              pointerEvents: 'none'
-                            }}
-                          >
-                            <img
-                              src={player.commanderImage}
-                              alt={player.commander}
-                              style={{
-                                width: '100%',
-                                borderRadius: '8px',
-                                display: 'block'
-                              }}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'block';
-                              }}
-                            />
-                            <div
-                              style={{
-                                display: 'none',
-                                textAlign: 'center',
-                                padding: '1rem',
-                                color: darkMode ? '#a0aec0' : '#718096',
-                                fontSize: '0.875rem'
-                              }}
-                            >
-                              Preview unavailable
-                            </div>
-                            <div
-                              style={{
-                                marginTop: '0.5rem',
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                textAlign: 'center',
-                                color: darkMode ? '#e2e8f0' : '#2d3748'
-                              }}
-                            >
-                              {player.commander}
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
