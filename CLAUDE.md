@@ -59,7 +59,17 @@ mtg-life-counter/
 ## Current Focus
 **Recently completed**: Major UX improvements with enhanced mobile interface and streamlined interaction system:
 
-### Latest Improvements (September 2025)
+### Latest Improvements (September 19, 2025)
+- **Optimized 2-Player Layout**: Swapped player positions so Player 1 appears on the right and Player 2 on the left in horizontal layout
+- **Enhanced Cross-Table Experience**: Both players in 2-horizontal layout now face opposite directions (Player 1: 0°, Player 2: 180°) for optimal cross-table gameplay
+- **Fine-Tuned Touch Handling**: Dramatically improved swipe vs tap detection to prevent accidental life changes during commander damage gestures:
+  - Increased minimum swipe distance from 50px to 80px
+  - Added 200ms minimum time threshold to distinguish swipes from quick taps
+  - Implemented touch movement tracking to detect swipe progress early
+  - Protected life change zones from triggering during active swipe gestures
+  - Enhanced overall touch responsiveness and accuracy
+
+### Previous Major Improvements (September 2025)
 - **Polished Commander Damage Interface**: Redesigned with large, prominent +/- controls (5rem) directly on opponent cards, grey overlay on initiating player, and styled "RETURN TO GAME" button
 - **Enhanced Life Change Animations**: Increased animation size to 3rem and repositioned to top-left of life totals for better visibility and cleaner layout
 - **Enhanced Life Total Display**: Increased life total font size from 4.5rem to 6rem for much better visibility and readability

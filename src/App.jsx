@@ -133,6 +133,7 @@ const MTGCommanderTracker = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [commanderDamageMode, setCommanderDamageMode] = useState(null); // null or player index
   const [touchStart, setTouchStart] = useState(null);
+  const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [firstPlayerRoll, setFirstPlayerRoll] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
@@ -218,23 +219,46 @@ const MTGCommanderTracker = () => {
   // Touch/swipe handling for commander damage
   const handleTouchStart = (e, playerId) => {
     const touch = e.touches[0];
-    setTouchStart({ x: touch.clientX, y: touch.clientY, playerId });
+    setTouchStart({
+      x: touch.clientX,
+      y: touch.clientY,
+      playerId,
+      timestamp: Date.now()
+    });
+  };
+
+  const handleTouchMove = (e, playerId) => {
+    if (!touchStart) return;
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    // If finger has moved significantly, consider it a swipe in progress
+    if (distance > 30) {
+      setIsSwipeInProgress(true);
+    }
   };
 
   const handleTouchEnd = (e, playerId) => {
     if (!touchStart) return;
-    
+
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStart.x;
     const deltaY = touch.clientY - touchStart.y;
-    
-    // Check if it's a significant horizontal swipe (not vertical scroll)
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+    const timeDelta = Date.now() - touchStart.timestamp;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    // Check if it's a significant horizontal swipe (not vertical scroll or quick tap)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 80 && distance > 80 && timeDelta > 200) {
       // Swipe detected - enter commander damage mode for this player
       setCommanderDamageMode(playerId);
+      e.preventDefault(); // Prevent any other touch events
     }
-    
+
     setTouchStart(null);
+    setIsSwipeInProgress(false);
   };
 
   // Commander damage functions
@@ -685,8 +709,8 @@ const endGame = async () => {
         width: layout === '2-horizontal' ? '50vw' : 'auto'
       };
       
-      if (layout === '2-horizontal' && playerIndex === 1) {
-        // For "left and right" layout, rotate the second player (right)
+      if (layout === '2-horizontal' && playerIndex === 0) {
+        // For "left and right" layout, rotate Player 2 (left side) 180 degrees
         return {
           ...baseStyle,
           transform: 'rotate(180deg)'
@@ -1553,8 +1577,15 @@ const endGame = async () => {
               position: 'relative',
               ...getLayoutStyles(selectedLayout, players.length)
             }}>
-            {players.map((player, index) => {
-              const isActive = index === activePlayerIndex;
+            {(selectedLayout === '2-horizontal' && players.length === 2
+              ? [...players].reverse()
+              : players
+            ).map((player, index) => {
+              // For 2-horizontal layout, we've reversed the array so Player 1 is now at index 1 (right)
+              const originalIndex = selectedLayout === '2-horizontal' && players.length === 2
+                ? players.findIndex(p => p.id === player.id)
+                : index;
+              const isActive = originalIndex === activePlayerIndex;
               
               // Get player background - use commander image if available, otherwise gradient
               const getPlayerBackground = (player, index) => {
@@ -1575,13 +1606,14 @@ const endGame = async () => {
                   key={player.id}
                   className={selectedLayout === '2-horizontal' ? 'player-card' : ''}
                   onTouchStart={(e) => handleTouchStart(e, player.id)}
+                  onTouchMove={(e) => handleTouchMove(e, player.id)}
                   onTouchEnd={(e) => handleTouchEnd(e, player.id)}
                   style={{
                     ...getPlayerCardStyle(selectedLayout, players.length, index),
                     borderRadius: '1rem',
                     position: 'relative',
                     color: 'white',
-                    background: getPlayerBackground(player, index),
+                    background: getPlayerBackground(player, originalIndex),
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat',
@@ -1756,10 +1788,16 @@ const endGame = async () => {
                     <>
                       {/* Left half - decrease life */}
                       <div
-                        onPointerDown={() => changeLife(player.id, -1)}
+                        onPointerDown={(e) => {
+                          if (!isSwipeInProgress) {
+                            changeLife(player.id, -1);
+                          }
+                        }}
                         onContextMenu={(e) => {
                           e.preventDefault();
-                          changeLife(player.id, -5);
+                          if (!isSwipeInProgress) {
+                            changeLife(player.id, -5);
+                          }
                         }}
                         style={{
                           position: 'absolute',
@@ -1775,10 +1813,16 @@ const endGame = async () => {
                       
                       {/* Right half - increase life */}
                       <div
-                        onPointerDown={() => changeLife(player.id, 1)}
+                        onPointerDown={(e) => {
+                          if (!isSwipeInProgress) {
+                            changeLife(player.id, 1);
+                          }
+                        }}
                         onContextMenu={(e) => {
                           e.preventDefault();
-                          changeLife(player.id, 5);
+                          if (!isSwipeInProgress) {
+                            changeLife(player.id, 5);
+                          }
                         }}
                         style={{
                           position: 'absolute',
