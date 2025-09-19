@@ -9,31 +9,31 @@
       "type": "image/x-icon"
     },
     {
-      "src": "mtg-logo.png-180x180.png",
+      "src": "mtg-logo-180x180.png",
       "type": "image/png",
       "sizes": "180x180",
       "purpose": "any"
     },
     {
-      "src": "mtg-logo.png-192x192.png",
+      "src": "mtg-logo-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "mtg-logo.png-192x192.png",
+      "src": "mtg-logo-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "mtg-logo.png-512x512.png",
+      "src": "mtg-logo-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "mtg-logo.png-512x512.png",
+      "src": "mtg-logo-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
