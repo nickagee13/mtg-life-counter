@@ -334,7 +334,7 @@ SELECT
         END, 2
     ) as win_rate_calc,
     array_agg(DISTINCT gp.commander_name) FILTER (WHERE gp.commander_name IS NOT NULL) as commanders_played,
-    array_agg(DISTINCT unnest(gp.commander_colors)) FILTER (WHERE gp.commander_colors IS NOT NULL) as colors_played
+    array_agg(DISTINCT gp.commander_colors) FILTER (WHERE gp.commander_colors IS NOT NULL) as colors_played
 FROM profiles p
 LEFT JOIN game_players gp ON p.id = gp.profile_id
 GROUP BY p.id;

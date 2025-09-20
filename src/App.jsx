@@ -20,7 +20,7 @@ import greenImage from './assets/images/green.png';
 import matrixBoldFont from './Matrix-Bold.ttf';
 
 const MTGCommanderTrackerInner = () => {
-  const { currentProfile } = useProfile();
+  const { currentProfile, selectProfile } = useProfile();
   // Prevent orientation-based layout changes
   React.useEffect(() => {
     // Add CSS to maintain static layouts regardless of device orientation
@@ -965,6 +965,9 @@ const endGame = async () => {
                     existingProfiles={players.map(p => p.profile).filter(Boolean)}
                     darkMode={darkMode}
                     showCommander={true}
+                    searchResults={searchResults[player.id] || []}
+                    searchLoading={searchLoading[player.id] || false}
+                    onSearchCommanders={(query) => searchCommanders(query, player.id)}
                   />
                 </div>
               ))}
@@ -1372,6 +1375,7 @@ const endGame = async () => {
               onClose={() => setShowProfileManager(false)}
               onProfileChange={(profile) => {
                 console.log('Profile changed:', profile);
+                selectProfile(profile);
                 setShowProfileManager(false);
               }}
             />

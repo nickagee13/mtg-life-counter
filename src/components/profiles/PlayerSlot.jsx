@@ -3,6 +3,7 @@ import {
   User, UserPlus, UserCheck, Hash, Trophy, ChevronDown, X, Search
 } from 'lucide-react';
 import { getMyProfileId, getRecentPlayers } from '../../lib/profiles/localStorage';
+import { getProfile } from '../../lib/profiles/profileService';
 import ProfileQuickAdd from './ProfileQuickAdd';
 
 const PlayerSlot = ({
@@ -12,13 +13,17 @@ const PlayerSlot = ({
   onRemove,
   existingProfiles = [],
   darkMode = true,
-  showCommander = true
+  showCommander = true,
+  searchResults = [],
+  searchLoading = false,
+  onSearchCommanders
 }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [recentPlayers, setRecentPlayers] = useState([]);
   const [myProfileId, setMyProfileId] = useState(null);
   const [searchValue, setSearchValue] = useState('');
+  const [showCommanderSuggestions, setShowCommanderSuggestions] = useState(false);
 
   useEffect(() => {
     // Load my profile and recent players
@@ -221,39 +226,114 @@ const PlayerSlot = ({
           alignItems: 'center',
           gap: '0.5rem'
         }}>
-          <input
-            type="text"
-            value={player.commander || ''}
-            onChange={(e) => onUpdate({ ...player, commander: e.target.value })}
-            placeholder="Commander name..."
-            style={{
-              flex: 1,
-              padding: '0.5rem',
-              backgroundColor: darkMode ? '#1a202c' : '#f7fafc',
-              border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
-              borderRadius: '0.5rem',
-              color: darkMode ? '#e2e8f0' : '#2d3748',
-              fontSize: '0.875rem'
-            }}
-          />
-          {player.commander && (
-            <button
-              onClick={() => {
-                // Trigger commander search if needed
-                console.log('Search for commander:', player.commander);
+          <div style={{ flex: 1, position: 'relative' }}>
+            <input
+              type="text"
+              value={player.commander || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                onUpdate({ ...player, commander: value });
+
+                // Trigger search as user types
+                if (onSearchCommanders) {
+                  onSearchCommanders(value);
+                }
+
+                // Show suggestions if there's input
+                setShowCommanderSuggestions(value.length >= 2);
               }}
+              onFocus={() => {
+                if (player.commander && player.commander.length >= 2) {
+                  setShowCommanderSuggestions(true);
+                }
+              }}
+              onBlur={() => {
+                // Hide suggestions after a delay to allow clicking
+                setTimeout(() => setShowCommanderSuggestions(false), 200);
+              }}
+              placeholder="Commander name..."
               style={{
+                width: '100%',
                 padding: '0.5rem',
-                backgroundColor: darkMode ? '#4a5568' : '#e2e8f0',
-                border: 'none',
+                backgroundColor: darkMode ? '#1a202c' : '#f7fafc',
+                border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
                 borderRadius: '0.5rem',
-                cursor: 'pointer',
-                color: darkMode ? '#e2e8f0' : '#2d3748'
+                color: darkMode ? '#e2e8f0' : '#2d3748',
+                fontSize: '0.875rem'
               }}
-            >
-              <Search size={16} />
-            </button>
-          )}
+            />
+
+            {/* Commander Suggestions Dropdown */}
+            {showCommanderSuggestions && searchResults.length > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+                border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
+                borderRadius: '0.5rem',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                zIndex: 200,
+                maxHeight: '200px',
+                overflowY: 'auto'
+              }}>
+                {searchResults.map((commander, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      onUpdate({
+                        ...player,
+                        commander: commander.name,
+                        commanderImage: commander.image_background,
+                        colors: commander.color_identity || []
+                      });
+                      setShowCommanderSuggestions(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      color: darkMode ? '#e2e8f0' : '#2d3748',
+                      fontSize: '0.875rem',
+                      borderBottom: idx < searchResults.length - 1 ? `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}` : 'none'
+                    }}
+                    onMouseEnter={e => {
+                      e.target.style.backgroundColor = darkMode ? '#2d3748' : '#f7fafc';
+                    }}
+                    onMouseLeave={e => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold' }}>{commander.name}</div>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      color: darkMode ? '#a0aec0' : '#718096'
+                    }}>
+                      {commander.type_line}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Loading indicator */}
+            {searchLoading && (
+              <div style={{
+                position: 'absolute',
+                right: '0.5rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: darkMode ? '#a0aec0' : '#718096',
+                fontSize: '0.75rem'
+              }}>
+                Loading...
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -274,8 +354,20 @@ const PlayerSlot = ({
           {/* Use My Profile */}
           {myProfileId && !existingProfiles.some(p => p.id === myProfileId) && (
             <button
-              onClick={() => {
-                const myProfile = recentPlayers.find(p => p.id === myProfileId);
+              onClick={async () => {
+                // First try to find in recent players
+                let myProfile = recentPlayers.find(p => p.id === myProfileId);
+
+                // If not found, fetch from database
+                if (!myProfile) {
+                  try {
+                    myProfile = await getProfile(myProfileId);
+                  } catch (error) {
+                    console.error('Error fetching my profile:', error);
+                    return;
+                  }
+                }
+
                 if (myProfile) handleSelectProfile(myProfile);
               }}
               style={{

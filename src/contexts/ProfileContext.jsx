@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { profileQueries } from '../lib/supabase-queries';
+import { getAllProfiles, createProfile as createProfileService } from '../lib/profiles/profileService';
 
 const ProfileContext = createContext();
 
@@ -27,7 +27,7 @@ export const ProfileProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const profiles = await profileQueries.getAllProfiles();
+      const profiles = await getAllProfiles();
       setAllProfiles(profiles);
     } catch (err) {
       console.error('Error loading profiles:', err);
@@ -49,7 +49,7 @@ export const ProfileProvider = ({ children }) => {
         throw new Error('Username already exists');
       }
 
-      const newProfile = await profileQueries.createProfile(profileData);
+      const newProfile = await createProfileService(profileData);
       setAllProfiles(prev => [...prev, newProfile]);
       setCurrentProfile(newProfile);
       return newProfile;
