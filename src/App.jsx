@@ -4,7 +4,9 @@ import { supabase } from './lib/supabase';
 import { ProfileProvider, useProfile } from './contexts/ProfileContext';
 import GameCompleteScreen from './components/GameCompleteScreen';
 import StatsScreen from './components/StatsScreen';
-import ProfileManager from './components/ProfileManager';
+import ProfileManager from './components/profiles/ProfileManager';
+import PlayerSlot from './components/profiles/PlayerSlot';
+import { saveGameWithProfiles } from './lib/profiles/profileService';
 import './App.css';
 
 // Import mana color images
@@ -416,6 +418,7 @@ const MTGCommanderTrackerInner = () => {
     const newPlayer = {
       id: Date.now(),
       name: `Player ${players.length + 1}`,
+      originalName: `Player ${players.length + 1}`,
       commander: '',
       colors: [],
       commanderImage: null,
@@ -423,7 +426,11 @@ const MTGCommanderTrackerInner = () => {
       commanderKeywords: [],
       life: 40,
       eliminated: false,
-      eliminatedTurn: null
+      eliminatedTurn: null,
+      // Profile-related fields
+      profile: null,
+      profile_id: null,
+      isGuest: true
     };
     setPlayers([...players, newPlayer]);
   };
@@ -564,59 +571,79 @@ const MTGCommanderTrackerInner = () => {
     setCurrentTurn(currentTurn + 1);
   };
 
+  // Helper function to calculate total commander damage dealt by a player
+  const calculateTotalDamageDealt = (playerId) => {
+    let totalDamage = 0;
+    Object.values(commanderDamage).forEach(playerDamage => {
+      if (playerDamage[playerId]) {
+        totalDamage += playerDamage[playerId];
+      }
+    });
+    return totalDamage;
+  };
+
   // End the game and save to Supabase
 const endGame = async () => {
   const winner = players.find(p => !p.eliminated);
   setGameState('finished');
-  
+
   try {
-    // Save game to Supabase
+    // Calculate final placements
+    const alivePlayers = players.filter(p => !p.eliminated);
+    const eliminatedPlayers = players.filter(p => p.eliminated)
+      .sort((a, b) => (b.eliminatedTurn || 0) - (a.eliminatedTurn || 0)); // Latest elimination = higher placement
+
+    // Assign placements: alive players get 1st place (or ties), then eliminated in reverse order
+    const playersWithPlacements = [];
+
+    // Alive players get placement 1 (winner) or tied for 1st if multiple alive
+    alivePlayers.forEach(player => {
+      playersWithPlacements.push({
+        ...player,
+        placement: 1
+      });
+    });
+
+    // Eliminated players get placements starting from after alive players
+    eliminatedPlayers.forEach((player, index) => {
+      playersWithPlacements.push({
+        ...player,
+        placement: alivePlayers.length + index + 1
+      });
+    });
+
+    // Prepare game data for profile service
     const gameData = {
-      winner: winner?.name || 'No winner',
-      total_turns: currentTurn,
+      session_id: `game_${Date.now()}`,
+      winner_profile_id: winner?.profile_id || null,
       duration_seconds: elapsedTime,
-      commander_damage: commanderDamage
+      total_turns: currentTurn,
+      format: 'commander'
     };
-    
-    console.log('Saving game data:', gameData);
-    
-    const { data: game, error: gameError } = await supabase
-      .from('games')
-      .insert([gameData])
-      .select()
-      .single();
-    
-    if (gameError) {
-      console.error('Error saving game:', gameError);
-      throw gameError;
-    }
-    
-    console.log('Game saved with ID:', game.id);
-    
-    // Save all players for this game
-    const playersData = players.map(p => ({
-      game_id: game.id,
-      name: p.name,
-      commander: p.commander,
-      colors: p.colors || [],
-      final_life: p.life,
-      eliminated: p.eliminated,
-      eliminated_turn: p.eliminatedTurn
+
+    // Prepare players data with profile information
+    const playersData = playersWithPlacements.map((player, index) => ({
+      profile_id: player.profile_id || null,
+      profile: player.profile || null,
+      name: player.name,
+      commander: player.commander || null,
+      colors: player.colors || null,
+      starting_life: 40,
+      final_life: player.life,
+      placement: player.placement,
+      commander_damage_dealt: calculateTotalDamageDealt(player.id),
+      commander_damage_received: commanderDamage[player.id] || {},
+      turns_survived: player.eliminatedTurn || currentTurn,
+      eliminations: 0 // TODO: Track actual eliminations in future
     }));
-    
-    console.log('Saving players data:', playersData);
-    
-    const { error: playersError } = await supabase
-      .from('players')
-      .insert(playersData);
-    
-    if (playersError) {
-      console.error('Error saving players:', playersError);
-      throw playersError;
-    }
-    
-    console.log('✅ Game and players saved successfully!');
-    
+
+    console.log('Saving game with profiles:', { gameData, playersData });
+
+    // Use the profile service to save the game
+    await saveGameWithProfiles(gameData, playersData);
+
+    console.log('✅ Game and player profiles updated successfully!');
+
   } catch (error) {
     console.error('❌ Error saving game:', error.message);
     alert('Game finished, but there was an error saving to database. Check console for details.');
@@ -905,6 +932,45 @@ const endGame = async () => {
               color: darkMode ? '#e2e8f0' : '#2d3748'
             }}>
               {players.map((player, index) => (
+                <div key={player.id} style={{ marginBottom: '1rem' }}>
+                  {firstPlayerRoll === index && (
+                    <div style={{
+                      color: '#ff6b35',
+                      fontSize: '0.875rem',
+                      fontWeight: 'bold',
+                      marginBottom: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem',
+                      backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                      borderRadius: '0.5rem',
+                      border: '2px solid #ff6b35'
+                    }}>
+                      <Dice6 size={16} />
+                      GOES FIRST!
+                    </div>
+                  )}
+
+                  <PlayerSlot
+                    index={index}
+                    player={player}
+                    onUpdate={(updatedPlayer) => {
+                      setPlayers(players.map(p =>
+                        p.id === player.id ? updatedPlayer : p
+                      ));
+                    }}
+                    onRemove={() => removePlayer(player.id)}
+                    existingProfiles={players.map(p => p.profile).filter(Boolean)}
+                    darkMode={darkMode}
+                    showCommander={true}
+                  />
+                </div>
+              ))}
+
+              {/* LEGACY PLAYER SETUP - HIDDEN */}
+              {false && players.map((player, index) => (
                 <div 
                   key={player.id} 
                   style={{
@@ -1217,7 +1283,8 @@ const endGame = async () => {
                   </div>
                 </div>
               ))}
-              
+              {/* END LEGACY PLAYER SETUP */}
+
               {players.length < 4 && (
                 <button
                   onClick={addPlayer}
@@ -1303,8 +1370,9 @@ const endGame = async () => {
             <ProfileManager
               darkMode={darkMode}
               onClose={() => setShowProfileManager(false)}
-              onProfileSelected={(profile) => {
-                console.log('Profile selected:', profile);
+              onProfileChange={(profile) => {
+                console.log('Profile changed:', profile);
+                setShowProfileManager(false);
               }}
             />
           )}
