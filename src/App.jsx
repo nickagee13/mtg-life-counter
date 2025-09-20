@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6, Users } from 'lucide-react';
+import { ChevronRight, Plus, X, RotateCw, Save, Trophy, Skull, Swords, Shuffle, Moon, Sun, Dice6, Users, Clock } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { ProfileProvider, useProfile } from './contexts/ProfileContext';
 import GameCompleteScreen from './components/GameCompleteScreen';
@@ -140,6 +140,7 @@ const MTGCommanderTrackerInner = () => {
   const [touchStart, setTouchStart] = useState(null);
   const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
+  const [showTimer, setShowTimer] = useState(true);
   const [firstPlayerRoll, setFirstPlayerRoll] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
   const [lifeChanges, setLifeChanges] = useState({}); // Track recent life changes for animation
@@ -283,17 +284,22 @@ const MTGCommanderTrackerInner = () => {
   const updateCommanderDamage = (targetPlayerId, dealerPlayerId, amount) => {
     const key = `${targetPlayerId}-${dealerPlayerId}`;
     const newValue = Math.max(0, (commanderDamage[key] || 0) + amount);
-    
+
+    // Only affect life if damage is actually being dealt (positive amount)
+    if (amount > 0) {
+      changeLife(targetPlayerId, -amount);
+    }
+
     setCommanderDamage(prev => ({
       ...prev,
       [key]: newValue
     }));
-    
-    // Check for lethal commander damage (21)
+
+    // Check for lethal commander damage (21) - instantly kills player
     if (newValue >= 21) {
-      setPlayers(prevPlayers => prevPlayers.map(p => 
-        p.id === targetPlayerId 
-          ? { ...p, eliminated: true, eliminatedTurn: currentTurn }
+      setPlayers(prevPlayers => prevPlayers.map(p =>
+        p.id === targetPlayerId
+          ? { ...p, life: 0, eliminated: true, eliminatedTurn: currentTurn }
           : p
       ));
     }
@@ -1756,12 +1762,16 @@ const endGame = async () => {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <span>{currentTurn}</span>
-                        <div style={{
-                          width: '2px',
-                          height: '1.5rem',
-                          backgroundColor: 'rgba(255,255,255,0.6)'
-                        }}></div>
-                        <span>{formatTime(elapsedTime)}</span>
+                        {showTimer && (
+                          <>
+                            <div style={{
+                              width: '2px',
+                              height: '1.5rem',
+                              backgroundColor: 'rgba(255,255,255,0.6)'
+                            }}></div>
+                            <span>{formatTime(elapsedTime)}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -2174,6 +2184,28 @@ const endGame = async () => {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                       {darkMode ? <Sun size={18} /> : <Moon size={18} />}
                       <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowTimer(!showTimer);
+                      setShowSettingsModal(false);
+                    }}
+                    style={{
+                      padding: '0.75rem',
+                      backgroundColor: darkMode ? '#4a5568' : '#f7fafc',
+                      color: darkMode ? 'white' : '#2d3748',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      fontSize: '1.125rem'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      <Clock size={18} />
+                      <span>{showTimer ? 'Hide Timer' : 'Show Timer'}</span>
                     </div>
                   </button>
                   

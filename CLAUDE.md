@@ -146,12 +146,52 @@ mtg-life-counter/
 - Converted file structure and build configuration for Vite compatibility
 - Updated all import paths and environment variables for Vite standards
 
-## Current Session Progress (September 19, 2025)
+## Current Session Progress (September 20, 2025)
 
-### Session Overview: UI Polish & Game Logic Enhancement
-This session focused on major UI improvements, replacing emojis with Lucide icons, timer redesign, life change animations, and implementing game over logic.
+### Session Overview: Enhanced Game Mechanics & UI Improvements
+This session focused on fixing life total tap responsiveness and implementing key MTG gameplay features including timer toggle, commander damage integration, and lethal damage rules.
 
 ### Major Achievements Completed
+
+#### 🎮 **Enhanced Game Mechanics**
+- [x] **Fixed Life Total Tap Responsiveness**
+  - Removed 150ms delay from life total tap zones for immediate response
+  - Simplified touch detection logic by removing pendingLifeChange state
+  - Life totals now change instantly with simple taps instead of requiring long presses
+
+- [x] **Timer Visibility Toggle**
+  - Added Clock icon toggle button in game settings menu
+  - Players can now hide timer display and show only turn numbers
+  - Settings button text dynamically changes between "Hide Timer" and "Show Timer"
+  - Preserves game state when toggling timer visibility
+
+- [x] **Commander Damage Life Integration**
+  - Commander damage now properly affects both tracking AND life totals
+  - Each point of commander damage reduces life total by the same amount
+  - Maintains accurate life tracking while preserving commander damage counters
+  - Only applies when damage is actually being dealt (positive amounts)
+
+- [x] **21 Commander Damage Lethal Rule**
+  - Enhanced existing lethal damage detection with instant death mechanics
+  - When player reaches 21 commander damage from any single opponent, they are instantly eliminated
+  - Player's life is automatically set to 0 and marked as eliminated
+  - Follows official MTG rules where 21 commander damage is lethal regardless of current life total
+
+#### 🎨 **UI Responsiveness Improvements**
+- [x] **Instant Life Total Changes**
+  - Eliminated 150ms delay that was causing unresponsive feel
+  - Removed complex pending change cancellation logic
+  - Streamlined touch handling for better mobile experience
+  - Maintained swipe gesture functionality for commander damage
+
+#### ⚙️ **Settings Menu Expansion**
+- [x] **Timer Control Options**
+  - New Clock icon button for timer visibility toggle
+  - Consistent styling with existing settings buttons
+  - Maintains all existing settings functionality
+  - Clean integration with dark/light mode theming
+
+### Previous Session Achievements (September 19, 2025)
 
 #### 🎨 **UI Design Polish**
 - [x] **Timer Redesign**: Complete overhaul to sleek horizontal layout
@@ -191,6 +231,7 @@ This session focused on major UI improvements, replacing emojis with Lucide icon
     - 🌙/☀️ → `<Moon size={18} />` / `<Sun size={18} />`
     - 🔄 → `<RotateCw size={18} />`
     - 🏁 → `<X size={18} />`
+    - 🕐 → `<Clock size={18} />` (Timer Toggle)
   - Consistent sizing, spacing, and professional appearance
 
 #### ⚙️ **Settings Menu Enhancement**
@@ -300,10 +341,10 @@ npm run eject      # No longer available (was CRA-specific)
 ---
 
 ## Document Status
-**Last Updated**: September 19, 2025
-**Status**: ✅ Fully Current - App verified functional and deployed
+**Last Updated**: September 20, 2025
+**Status**: ✅ Fully Current - App verified functional with enhanced game mechanics
 **Next Review**: When significant features are added or major changes occur
 
 ---
 
-*This documentation reflects the current state of the MTG Life Counter application as of September 19, 2025. All major systems are functional, tested, and deployed to production at https://mtg-life-counter-na.netlify.app/*
+*This documentation reflects the current state of the MTG Life Counter application as of September 20, 2025. All major systems are functional, including enhanced life total responsiveness, timer toggle, commander damage life integration, and official 21-damage lethal rules. Ready for deployment to production at https://mtg-life-counter-na.netlify.app/*
