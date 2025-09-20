@@ -340,11 +340,72 @@ npm run eject      # No longer available (was CRA-specific)
 
 ---
 
+## Future Features - Profile System V2
+
+The following enhancements are planned for future iterations of the profile system:
+
+### 🔐 **Authentication & Social**
+- **QR Code Sharing**: Generate and scan QR codes for instant profile sharing
+- **Friend System**: Add friends for easier profile management and game invites
+- **Privacy Settings**: Control profile visibility (public/friends only/private)
+- **OAuth Integration**: Sign in with Google/Discord for account recovery
+
+### 📊 **Advanced Statistics**
+- **Commander-Specific Win Rates**: Track performance with each commander
+- **Elimination Order Tracking**: Record who eliminated whom and when
+- **Commander Damage Analytics**: Detailed breakdown of damage dealt/received
+- **Win Percentage by Starting Position**: Analyze if going first affects win rate
+- **Favorite Opponents**: Track most-played-against players
+- **Average Game Duration by Commander**: See which decks lead to longer games
+- **Turn Count Analysis**: Track average turns survived and turns to win
+- **Color Performance Matrix**: Win rates against specific color combinations
+
+### 🏆 **Achievements & Gamification**
+- **Achievement System**: Unlock badges for milestones (100 wins, perfect game, etc.)
+- **Seasonal Rankings**: Monthly/quarterly leaderboards
+- **Rivalry Tracking**: Head-to-head records and nemesis system
+- **Streak Rewards**: Special badges for win/loss streaks
+- **Commander Mastery**: Levels and rewards for playing specific commanders
+
+### 🎯 **Deck Management**
+- **Multiple Deck Links**: Store Moxfield/Archidekt/Manabox URLs
+- **Deck Performance Tracking**: Stats per deck, not just commander
+- **Power Level Rating**: Track and display deck power levels
+- **Deck History**: Version control for deck changes over time
+- **EDHREC Integration**: Pull commander data and suggestions
+
+### 👥 **Playgroup Features**
+- **Regular Groups**: Save and manage recurring playgroups
+- **Group Statistics**: Overall group meta analysis
+- **Schedule Games**: Plan future game sessions
+- **Group Chat**: In-app messaging for playgroup coordination
+- **House Rules**: Store custom rules per playgroup
+
+### 📱 **Export & Integration**
+- **Export Statistics**: Generate CSV/PDF reports
+- **API Access**: Developer API for third-party integrations
+- **Discord Bot**: Share game results to Discord servers
+- **Stream Overlays**: OBS/StreamLabs integration for content creators
+
+### 🎨 **Customization**
+- **Profile Avatars**: Upload custom images or use commander art
+- **Custom Backgrounds**: Personalized profile themes
+- **Vanity URLs**: Custom profile links (e.g., /player/username)
+- **Profile Badges**: Display achievements and milestones
+
+### 📈 **Analytics Dashboard**
+- **Meta Analysis**: Track local meta trends
+- **Performance Graphs**: Visualize improvement over time
+- **Heatmaps**: Win rate by day/time analysis
+- **Predictive Stats**: ML-based win probability calculations
+
+---
+
 ## Document Status
 **Last Updated**: September 20, 2025
-**Status**: ✅ Fully Current - App verified functional with enhanced game mechanics
+**Status**: ✅ Fully Current - App verified functional with comprehensive profile system MVP
 **Next Review**: When significant features are added or major changes occur
 
 ---
 
-*This documentation reflects the current state of the MTG Life Counter application as of September 20, 2025. All major systems are functional, including enhanced life total responsiveness, timer toggle, commander damage life integration, and official 21-damage lethal rules. Ready for deployment to production at https://mtg-life-counter-na.netlify.app/*
+*This documentation reflects the current state of the MTG Life Counter application as of September 20, 2025. All major systems are functional, including the new profile system with share codes, stats tracking, and cross-device syncing. The feature/profile-system branch contains the complete implementation ready for testing and merge.*
