@@ -132,6 +132,8 @@ const MTGCommanderTrackerInner = () => {
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [gameStartTime, setGameStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [turnStartTime, setTurnStartTime] = useState(null);
+  const [turnElapsedTime, setTurnElapsedTime] = useState(0);
   const [commanderDamage, setCommanderDamage] = useState({});
   const [showCommanderDamage, setShowCommanderDamage] = useState(false);
   const [selectedDamageDealer, setSelectedDamageDealer] = useState(null);
@@ -149,7 +151,7 @@ const MTGCommanderTrackerInner = () => {
   const [failedImages, setFailedImages] = useState(new Set()); // Track failed commander images
   const [showProfileManager, setShowProfileManager] = useState(false);
 
-  // Timer effect
+  // Overall game timer effect
   useEffect(() => {
     let interval;
     if (gameState === 'playing' && gameStartTime) {
@@ -159,6 +161,17 @@ const MTGCommanderTrackerInner = () => {
     }
     return () => clearInterval(interval);
   }, [gameState, gameStartTime]);
+
+  // Turn timer effect
+  useEffect(() => {
+    let interval;
+    if (gameState === 'playing' && turnStartTime) {
+      interval = setInterval(() => {
+        setTurnElapsedTime(Math.floor((Date.now() - turnStartTime) / 1000));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [gameState, turnStartTime]);
 
   // Check for game over condition
   useEffect(() => {
@@ -214,6 +227,10 @@ const MTGCommanderTrackerInner = () => {
   };
 
   const advanceToNextTurn = () => {
+    // Reset turn timer
+    setTurnStartTime(Date.now());
+    setTurnElapsedTime(0);
+
     setActivePlayerIndex((prevIndex) => {
       const nextIndex = (prevIndex + 1) % players.length;
       if (nextIndex === 0) {
@@ -471,6 +488,8 @@ const MTGCommanderTrackerInner = () => {
     setCommanderDamage(damageMatrix);
     setGameState('playing');
     setGameStartTime(Date.now());
+    setTurnStartTime(Date.now()); // Initialize turn timer
+    setTurnElapsedTime(0);
     setLifeChanges({}); // Clear any life change animations
     // Use randomized first player if set, otherwise default to first player
     setActivePlayerIndex(firstPlayerRoll !== null ? firstPlayerRoll : 0);
@@ -1769,7 +1788,7 @@ const endGame = async () => {
                               height: '1.5rem',
                               backgroundColor: 'rgba(255,255,255,0.6)'
                             }}></div>
-                            <span>{formatTime(elapsedTime)}</span>
+                            <span>{formatTime(turnElapsedTime)}</span>
                           </>
                         )}
                       </div>
