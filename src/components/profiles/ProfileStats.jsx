@@ -576,7 +576,7 @@ const ProfileStats = ({ profileId, profile, darkMode = true, onClose }) => {
               fontWeight: 'bold',
               marginBottom: '0.5rem'
             }}>
-              {profile?.display_name || 'Profile'} Stats
+              {profile?.display_name ? `${profile.display_name}'s Stats` : 'Stats'}
             </h2>
             <div style={{
               display: 'flex',
