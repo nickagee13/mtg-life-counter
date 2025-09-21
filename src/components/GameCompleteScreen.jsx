@@ -80,16 +80,17 @@ const GameCompleteScreen = ({
         commander_damage: commanderDamage
       };
 
-      const participantsData = finalStandings.map(player => ({
-        profile_id: currentProfile?.isGuest ? null : currentProfile?.id,
-        player_name: player.name,
-        commander: player.commander || null,
-        colors: player.colors || [],
+      const participantsData = finalStandings.map((player, index) => ({
+        profile_id: player.profile?.id || null,
+        player_position: index + 1,
+        is_guest: !player.profile || player.isGuest,
+        guest_name: (!player.profile || player.isGuest) ? player.name : null,
+        commander_name: player.commander || null,
+        commander_colors: player.colors || [],
         starting_life: 40,
         final_life: player.life,
-        place: player.place,
-        eliminated_turn: player.eliminatedTurn,
-        commander_damage_dealt: {},
+        placement: player.place,
+        commander_damage_dealt: 0,
         commander_damage_received: {}
       }));
 

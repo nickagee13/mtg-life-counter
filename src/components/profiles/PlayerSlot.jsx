@@ -440,7 +440,7 @@ const PlayerSlot = ({
           zIndex: 100
         }}>
           {/* Use My Profile */}
-          {myProfileId && !existingProfiles.some(p => p.id === myProfileId) && (
+          {myProfileId && (
             <button
               onClick={async () => {
                 // First try to find in recent players

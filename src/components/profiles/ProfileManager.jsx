@@ -91,7 +91,11 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
     setSelectedProfile(profile);
   };
 
-  const handleDeleteProfile = async (profileId) => {
+  const handleDeleteProfile = async (profileId, event) => {
+    if (event) {
+      event.stopPropagation(); // Prevent profile selection when clicking delete
+    }
+
     if (!window.confirm('Are you sure you want to delete this profile? This action cannot be undone.')) {
       return;
     }
@@ -449,10 +453,39 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
                   </div>
                 </div>
                 <div style={{
-                  fontSize: '0.875rem',
-                  color: darkMode ? '#a0aec0' : '#718096'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
                 }}>
-                  {profile.games_played || 0} games • {profile.win_rate || 0}%
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: darkMode ? '#a0aec0' : '#718096'
+                  }}>
+                    {profile.games_played || 0} games • {profile.win_rate || 0}%
+                  </div>
+                  <button
+                    onClick={(event) => handleDeleteProfile(profile.id, event)}
+                    style={{
+                      padding: '0.25rem',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      borderRadius: '0.25rem',
+                      cursor: 'pointer',
+                      color: '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Delete profile"
+                    onMouseEnter={e => {
+                      e.target.style.backgroundColor = darkMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                    }}
+                    onMouseLeave={e => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               </button>
             ))}

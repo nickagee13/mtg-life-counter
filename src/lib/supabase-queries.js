@@ -5,7 +5,7 @@ export const profileQueries = {
   // Get all profiles
   async getAllProfiles() {
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .select('*')
       .order('display_name', { ascending: true });
 
@@ -16,7 +16,7 @@ export const profileQueries = {
   // Get profile by ID
   async getProfile(id) {
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .select('*')
       .eq('id', id)
       .single();
@@ -28,7 +28,7 @@ export const profileQueries = {
   // Create new profile
   async createProfile(profileData) {
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .insert([{
         username: profileData.username,
         display_name: profileData.display_name,
@@ -53,7 +53,7 @@ export const profileQueries = {
   // Update profile stats
   async updateProfileStats(profileId, stats) {
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .update({ stats })
       .eq('id', profileId)
       .select()
@@ -71,14 +71,13 @@ export const gameQueries = {
     try {
       // Insert game
       const { data: game, error: gameError } = await supabase
-        .from('games_new')
+        .from('games')
         .insert([{
           total_turns: gameData.total_turns,
-          duration_seconds: gameData.duration_seconds,
+          duration_minutes: Math.round(gameData.duration_seconds / 60),
           winner_profile_id: gameData.winner_profile_id,
-          game_format: gameData.game_format || 'Commander',
-          player_count: gameData.player_count,
-          commander_damage: gameData.commander_damage || {}
+          format: gameData.game_format || 'commander',
+          player_count: gameData.player_count
         }])
         .select()
         .single();
@@ -92,7 +91,7 @@ export const gameQueries = {
       }));
 
       const { data: participants, error: participantsError } = await supabase
-        .from('game_participants')
+        .from('game_players')
         .insert(participantsWithGameId)
         .select();
 
@@ -108,12 +107,12 @@ export const gameQueries = {
   // Get recent games
   async getRecentGames(limit = 10) {
     const { data, error } = await supabase
-      .from('games_new')
+      .from('games')
       .select(`
         *,
-        game_participants (
+        game_players (
           *,
-          user_profiles (display_name)
+          profiles (display_name)
         )
       `)
       .order('created_at', { ascending: false })
@@ -126,14 +125,14 @@ export const gameQueries = {
   // Get games for a specific profile
   async getProfileGames(profileId, limit = 50) {
     const { data, error } = await supabase
-      .from('game_participants')
+      .from('game_players')
       .select(`
         *,
-        games_new (
+        games (
           *,
-          game_participants (
+          game_players (
             *,
-            user_profiles (display_name)
+            profiles (display_name)
           )
         )
       `)
@@ -149,7 +148,7 @@ export const gameQueries = {
   async getProfileStats(profileId) {
     // Get basic stats from profile
     const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .select('stats')
       .eq('id', profileId)
       .single();
@@ -158,12 +157,12 @@ export const gameQueries = {
 
     // Get detailed game history for calculations
     const { data: games, error: gamesError } = await supabase
-      .from('game_participants')
+      .from('game_players')
       .select(`
         *,
-        games_new (
+        games (
           total_turns,
-          duration_seconds,
+          duration_minutes,
           created_at
         )
       `)
@@ -173,15 +172,15 @@ export const gameQueries = {
 
     // Calculate detailed stats
     const totalGames = games.length;
-    const wins = games.filter(g => g.place === 1).length;
+    const wins = games.filter(g => g.placement === 1).length;
     const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
     const avgDuration = totalGames > 0
-      ? Math.round(games.reduce((sum, g) => sum + g.games_new.duration_seconds, 0) / totalGames)
+      ? Math.round(games.reduce((sum, g) => sum + (g.games.duration_minutes * 60), 0) / totalGames)
       : 0;
 
     const avgTurns = totalGames > 0
-      ? Math.round(games.reduce((sum, g) => sum + g.games_new.total_turns, 0) / totalGames * 10) / 10
+      ? Math.round(games.reduce((sum, g) => sum + g.games.total_turns, 0) / totalGames * 10) / 10
       : 0;
 
     // Commander stats
@@ -220,11 +219,11 @@ export const gameQueries = {
       commanderStats,
       colorStats,
       recentGames: games.slice(0, 5).map(g => ({
-        date: g.games_new.created_at,
-        commander: g.commander,
-        place: g.place,
-        turns: g.games_new.total_turns,
-        duration: g.games_new.duration_seconds
+        date: g.games.created_at,
+        commander: g.commander_name,
+        place: g.placement,
+        turns: g.games.total_turns,
+        duration: g.games.duration_minutes * 60
       }))
     };
   }
