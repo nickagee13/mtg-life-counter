@@ -3,7 +3,7 @@ import {
   User, UserPlus, UserCheck, Hash, Trophy, ChevronDown, X, Search
 } from 'lucide-react';
 import { getMyProfileId, getRecentPlayers } from '../../lib/profiles/localStorage';
-import { getProfile } from '../../lib/profiles/profileService';
+import { useProfile } from '../../contexts/ProfileContext';
 import ProfileQuickAdd from './ProfileQuickAdd';
 
 // Import mana symbol images
@@ -28,15 +28,13 @@ const PlayerSlot = ({
   const [showOptions, setShowOptions] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [recentPlayers, setRecentPlayers] = useState([]);
-  const [myProfileId, setMyProfileId] = useState(null);
   const [searchValue, setSearchValue] = useState('');
   const [showCommanderSuggestions, setShowCommanderSuggestions] = useState(false);
 
-  useEffect(() => {
-    // Load my profile and recent players
-    const profileId = getMyProfileId();
-    setMyProfileId(profileId);
+  const { currentProfile } = useProfile();
 
+  useEffect(() => {
+    // Load recent players
     const recent = getRecentPlayers();
     setRecentPlayers(recent);
   }, []);
@@ -440,23 +438,10 @@ const PlayerSlot = ({
           zIndex: 100
         }}>
           {/* Use My Profile */}
-          {myProfileId && (
+          {currentProfile && !currentProfile.isGuest && (
             <button
-              onClick={async () => {
-                // First try to find in recent players
-                let myProfile = recentPlayers.find(p => p.id === myProfileId);
-
-                // If not found, fetch from database
-                if (!myProfile) {
-                  try {
-                    myProfile = await getProfile(myProfileId);
-                  } catch (error) {
-                    console.error('Error fetching my profile:', error);
-                    return;
-                  }
-                }
-
-                if (myProfile) handleSelectProfile(myProfile);
+              onClick={() => {
+                handleSelectProfile(currentProfile);
               }}
               style={{
                 width: '100%',
@@ -473,7 +458,15 @@ const PlayerSlot = ({
               }}
             >
               <User size={16} color="#8b5cf6" />
-              <span style={{ fontWeight: 'bold' }}>Use My Profile</span>
+              <div>
+                <div style={{ fontWeight: 'bold' }}>Use My Profile</div>
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: darkMode ? '#a0aec0' : '#718096'
+                }}>
+                  {currentProfile.display_name} (@{currentProfile.username})
+                </div>
+              </div>
             </button>
           )}
 

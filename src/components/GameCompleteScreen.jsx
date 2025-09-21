@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, RotateCw, Plus, Save, Shuffle, Crown } from 'lucide-react';
-import { gameQueries } from '../lib/supabase-queries';
 import { useProfile } from '../contexts/ProfileContext';
 
 const GameCompleteScreen = ({
@@ -14,9 +13,6 @@ const GameCompleteScreen = ({
   onViewStats
 }) => {
   const { currentProfile, getProfileById } = useProfile();
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [saveError, setSaveError] = useState(null);
 
   // Determine winner and final standings
   const alivePlayers = players.filter(p => p.life > 0);
@@ -63,51 +59,8 @@ const GameCompleteScreen = ({
 
   const commanderDamageSummary = getCommanderDamageSummary();
 
-  // Save game to database
-  const saveGame = async () => {
-    if (saving || saved) return;
-
-    try {
-      setSaving(true);
-      setSaveError(null);
-
-      const gameData = {
-        total_turns: currentTurn,
-        duration_seconds: elapsedTime,
-        winner_profile_id: currentProfile?.isGuest ? null : currentProfile?.id,
-        game_format: 'Commander',
-        player_count: players.length,
-        commander_damage: commanderDamage
-      };
-
-      const participantsData = finalStandings.map((player, index) => ({
-        profile_id: player.profile?.id || null,
-        player_position: index + 1,
-        is_guest: !player.profile || player.isGuest,
-        guest_name: (!player.profile || player.isGuest) ? player.name : null,
-        commander_name: player.commander || null,
-        commander_colors: player.colors || [],
-        starting_life: 40,
-        final_life: player.life,
-        placement: player.place,
-        commander_damage_dealt: 0,
-        commander_damage_received: {}
-      }));
-
-      await gameQueries.saveGame(gameData, participantsData);
-      setSaved(true);
-    } catch (error) {
-      console.error('Error saving game:', error);
-      setSaveError(error.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Auto-save game when component mounts
-  useEffect(() => {
-    saveGame();
-  }, []);
+  // Note: Game saving is now handled by App.jsx using saveGameWithProfiles()
+  // This component just displays the results
 
   return (
     <div style={{
@@ -321,23 +274,10 @@ const GameCompleteScreen = ({
           <div style={{
             textAlign: 'center',
             marginBottom: '0.5rem',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            color: '#10b981'
           }}>
-            {saving && (
-              <span style={{ color: darkMode ? '#a0aec0' : '#718096' }}>
-                Saving game...
-              </span>
-            )}
-            {saved && !saveError && (
-              <span style={{ color: '#10b981' }}>
-                ✅ Game saved successfully!
-              </span>
-            )}
-            {saveError && (
-              <span style={{ color: '#ef4444' }}>
-                ❌ Error saving: {saveError}
-              </span>
-            )}
+            ✅ Game saved successfully!
           </div>
 
           {/* Quick Rematch */}

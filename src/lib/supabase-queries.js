@@ -149,7 +149,7 @@ export const gameQueries = {
     // Get basic stats from profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('stats')
+      .select('games_played, wins, win_rate, avg_game_duration, favorite_colors')
       .eq('id', profileId)
       .single();
 

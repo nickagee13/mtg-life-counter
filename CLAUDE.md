@@ -146,7 +146,55 @@ mtg-life-counter/
 - Converted file structure and build configuration for Vite compatibility
 - Updated all import paths and environment variables for Vite standards
 
-## Current Session Progress (September 20, 2025)
+## Current Session Progress (September 21, 2025)
+
+### Session Overview: PlayerSlot Profile Integration & Database Constraint Fixes
+This session focused on implementing the "Use My Profile" feature in PlayerSlot components and resolving critical database constraint violations that were preventing game saves. All database issues have been resolved and the profile system is now fully operational.
+
+### Major Achievements Completed
+
+#### 👤 **PlayerSlot Profile Integration**
+- [x] **"Use My Profile" Feature Implementation**
+  - Added ProfileContext integration to PlayerSlot component
+  - "Use My Profile" option now appears above "Enter Share Code" in profile dropdown
+  - Shows current profile's display name and username for easy identification
+  - Removes need to manually enter share codes for your own profile
+  - Seamless integration with existing profile selection flow
+
+#### 🗄️ **Database Constraint Resolution**
+- [x] **Games Table Format Constraint Fix**
+  - Identified duplicate save operations causing constraint violations
+  - Old `games` table had conflicting format constraints preventing saves
+  - Created migration to properly drop and recreate `games` table with correct schema
+  - Fixed format constraint to accept lowercase 'commander' value
+
+- [x] **Eliminated Duplicate Save Logic**
+  - Removed conflicting save operation from GameCompleteScreen component
+  - App.jsx now handles all game saving through `saveGameWithProfiles()`
+  - Eliminated race conditions between multiple save attempts
+  - Fixed case-sensitivity issue: 'Commander' vs 'commander' format values
+
+- [x] **Game Players Table Recreation**
+  - Recreated `game_players` table with proper foreign key relationships
+  - Fixed PostgREST relationship errors preventing stats queries
+  - Restored proper table structure after CASCADE deletion
+  - Added proper indexes and Row Level Security policies
+
+#### 📊 **Statistics System Restoration**
+- [x] **StatsScreen Query Fixes**
+  - Fixed "column profiles.stats does not exist" database error
+  - Updated profile stats query to use individual stat columns
+  - Restored full statistics functionality showing game history and performance
+  - Stats screen now loads properly with comprehensive game analytics
+
+#### 🧹 **Code Cleanup & Optimization**
+- [x] **Component State Management**
+  - Removed unused saving/saved state variables from GameCompleteScreen
+  - Cleaned up import statements and unused dependencies
+  - Simplified game completion flow with single save operation
+  - Added proper error handling and success messaging
+
+## Previous Session Progress (September 20, 2025)
 
 ### Session Overview: Profile System Database Integration & Bug Fixes
 This session focused on completing the profile system integration by running the database migration, fixing critical bugs in username validation, and restoring commander search functionality. All profile features are now fully operational with proper database connectivity.
@@ -535,24 +583,23 @@ The following enhancements are planned for future iterations of the profile syst
 ---
 
 ## Document Status
-**Last Updated**: September 20, 2025
-**Status**: ✅ Production Ready - Profile system fully operational with database integration
-**Branch**: `main` - All profile features tested and functional
+**Last Updated**: September 21, 2025
+**Status**: ✅ Production Ready - All database issues resolved, profile system fully operational
+**Branch**: `main` - PlayerSlot integration complete, database constraints fixed
 **Next Review**: When significant features are added or major changes occur
 
 ---
 
-*This documentation reflects the current state of the MTG Life Counter application as of September 20, 2025. The comprehensive profile system has been successfully implemented, database-integrated, and fully tested. All critical bugs have been resolved and the app is production-ready with complete profile functionality including username validation, share codes, profile persistence, and commander search auto-completion.*
+*This documentation reflects the current state of the MTG Life Counter application as of September 21, 2025. The profile system is fully operational with all database constraint issues resolved. The "Use My Profile" feature has been successfully implemented and all game saving functionality works correctly.*
 
 **Latest Session Accomplishments:**
-- ✅ Database migration executed successfully in Supabase
-- ✅ Username validation system fully functional
-- ✅ Profile persistence and context integration complete
-- ✅ Commander search auto-completion restored and enhanced
-- ✅ All profile features tested and operational
-- ✅ Full integration with existing game flow
-- ✅ Comprehensive test suite of components and services
-- ✅ Database migration and security implementation
-- ✅ Ready for production deployment
+- ✅ "Use My Profile" feature implemented in PlayerSlot components
+- ✅ Database constraint violations completely resolved
+- ✅ Eliminated duplicate save operations causing conflicts
+- ✅ Fixed games table format constraint issues
+- ✅ Recreated game_players table with proper relationships
+- ✅ Statistics screen fully functional with game history
+- ✅ Code cleanup and optimization completed
+- ✅ All database tables properly structured and operational
 
-**Ready for:** Database migration → Testing → Pull request → Production deployment
+**Ready for:** Continued feature development and enhancements
