@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, RotateCw, Plus, Save, Shuffle } from 'lucide-react';
+import { Trophy, RotateCw, Plus, Save, Shuffle, Crown } from 'lucide-react';
 import { gameQueries } from '../lib/supabase-queries';
 import { useProfile } from '../contexts/ProfileContext';
 
@@ -246,7 +246,7 @@ const GameCompleteScreen = ({
                   fontWeight: 'bold',
                   fontSize: '1.125rem'
                 }}>
-                  {index === 0 ? '👑' : player.place}
+                  {index === 0 ? <Crown size={16} /> : player.place}
                 </div>
                 <div>
                   <div style={{

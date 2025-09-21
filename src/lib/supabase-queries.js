@@ -186,13 +186,13 @@ export const gameQueries = {
     // Commander stats
     const commanderStats = {};
     games.forEach(g => {
-      if (g.commander) {
-        if (!commanderStats[g.commander]) {
-          commanderStats[g.commander] = { games: 0, wins: 0 };
+      if (g.commander_name) {
+        if (!commanderStats[g.commander_name]) {
+          commanderStats[g.commander_name] = { games: 0, wins: 0 };
         }
-        commanderStats[g.commander].games++;
-        if (g.place === 1) {
-          commanderStats[g.commander].wins++;
+        commanderStats[g.commander_name].games++;
+        if (g.placement === 1) {
+          commanderStats[g.commander_name].wins++;
         }
       }
     });
@@ -200,12 +200,12 @@ export const gameQueries = {
     // Color combination stats
     const colorStats = {};
     games.forEach(g => {
-      const colorKey = g.colors ? g.colors.sort().join('') : 'Colorless';
+      const colorKey = g.commander_colors ? g.commander_colors.sort().join('') : 'Colorless';
       if (!colorStats[colorKey]) {
         colorStats[colorKey] = { games: 0, wins: 0 };
       }
       colorStats[colorKey].games++;
-      if (g.place === 1) {
+      if (g.placement === 1) {
         colorStats[colorKey].wins++;
       }
     });
