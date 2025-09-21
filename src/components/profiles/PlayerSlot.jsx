@@ -6,6 +6,13 @@ import { getMyProfileId, getRecentPlayers } from '../../lib/profiles/localStorag
 import { getProfile } from '../../lib/profiles/profileService';
 import ProfileQuickAdd from './ProfileQuickAdd';
 
+// Import mana symbol images
+import whiteIcon from '../../assets/images/white.jpeg';
+import blueIcon from '../../assets/images/blue.jpeg';
+import blackIcon from '../../assets/images/black.jpeg';
+import redIcon from '../../assets/images/red.png';
+import greenIcon from '../../assets/images/green.png';
+
 const PlayerSlot = ({
   index,
   player,
@@ -221,121 +228,202 @@ const PlayerSlot = ({
 
       {/* Commander Section */}
       {showCommander && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <div style={{ flex: 1, position: 'relative' }}>
-            <input
-              type="text"
-              value={player.commander || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                onUpdate({ ...player, commander: value });
+        <div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <input
+                type="text"
+                value={player.commander || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  onUpdate({ ...player, commander: value });
 
-                // Trigger search as user types
-                if (onSearchCommanders) {
-                  onSearchCommanders(value);
-                }
+                  // Trigger search as user types
+                  if (onSearchCommanders) {
+                    onSearchCommanders(value);
+                  }
 
-                // Show suggestions if there's input
-                setShowCommanderSuggestions(value.length >= 2);
-              }}
-              onFocus={() => {
-                if (player.commander && player.commander.length >= 2) {
-                  setShowCommanderSuggestions(true);
-                }
-              }}
-              onBlur={() => {
-                // Hide suggestions after a delay to allow clicking
-                setTimeout(() => setShowCommanderSuggestions(false), 200);
-              }}
-              placeholder="Commander name..."
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                backgroundColor: darkMode ? '#1a202c' : '#f7fafc',
-                border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
-                borderRadius: '0.5rem',
-                color: darkMode ? '#e2e8f0' : '#2d3748',
-                fontSize: '0.875rem'
-              }}
-            />
+                  // Show suggestions if there's input
+                  setShowCommanderSuggestions(value.length >= 2);
+                }}
+                onFocus={() => {
+                  if (player.commander && player.commander.length >= 2) {
+                    setShowCommanderSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  // Hide suggestions after a delay to allow clicking
+                  setTimeout(() => setShowCommanderSuggestions(false), 200);
+                }}
+                placeholder="Commander name..."
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  backgroundColor: darkMode ? '#1a202c' : '#f7fafc',
+                  border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
+                  borderRadius: '0.5rem',
+                  color: darkMode ? '#e2e8f0' : '#2d3748',
+                  fontSize: '0.875rem'
+                }}
+              />
 
-            {/* Commander Suggestions Dropdown */}
-            {showCommanderSuggestions && searchResults.length > 0 && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                right: 0,
-                backgroundColor: darkMode ? '#1a202c' : '#ffffff',
-                border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
-                borderRadius: '0.5rem',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                zIndex: 200,
-                maxHeight: '200px',
-                overflowY: 'auto'
-              }}>
-                {searchResults.map((commander, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      onUpdate({
-                        ...player,
-                        commander: commander.name,
-                        commanderImage: commander.image_background,
-                        colors: commander.color_identity || []
-                      });
-                      setShowCommanderSuggestions(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      color: darkMode ? '#e2e8f0' : '#2d3748',
-                      fontSize: '0.875rem',
-                      borderBottom: idx < searchResults.length - 1 ? `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}` : 'none'
-                    }}
-                    onMouseEnter={e => {
-                      e.target.style.backgroundColor = darkMode ? '#2d3748' : '#f7fafc';
-                    }}
-                    onMouseLeave={e => {
-                      e.target.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <div style={{ fontWeight: 'bold' }}>{commander.name}</div>
-                    <div style={{
-                      fontSize: '0.75rem',
-                      color: darkMode ? '#a0aec0' : '#718096'
-                    }}>
-                      {commander.type_line}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+              {/* Commander Suggestions Dropdown */}
+              {showCommanderSuggestions && searchResults.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+                  border: `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}`,
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                  zIndex: 200,
+                  maxHeight: '200px',
+                  overflowY: 'auto'
+                }}>
+                  {searchResults.map((commander, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        onUpdate({
+                          ...player,
+                          commander: commander.name,
+                          commanderImage: commander.image_background,
+                          colors: commander.color_identity || [],
+                          commanderData: commander
+                        });
+                        setShowCommanderSuggestions(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        color: darkMode ? '#e2e8f0' : '#2d3748',
+                        fontSize: '0.875rem',
+                        borderBottom: idx < searchResults.length - 1 ? `1px solid ${darkMode ? '#4a5568' : '#e2e8f0'}` : 'none'
+                      }}
+                      onMouseEnter={e => {
+                        e.target.style.backgroundColor = darkMode ? '#2d3748' : '#f7fafc';
+                      }}
+                      onMouseLeave={e => {
+                        e.target.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      <div style={{ fontWeight: 'bold' }}>{commander.name}</div>
+                      <div style={{
+                        fontSize: '0.75rem',
+                        color: darkMode ? '#a0aec0' : '#718096'
+                      }}>
+                        {commander.type_line}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
-            {/* Loading indicator */}
-            {searchLoading && (
-              <div style={{
-                position: 'absolute',
-                right: '0.5rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: darkMode ? '#a0aec0' : '#718096',
-                fontSize: '0.75rem'
-              }}>
-                Loading...
-              </div>
-            )}
+              {/* Loading indicator */}
+              {searchLoading && (
+                <div style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: darkMode ? '#a0aec0' : '#718096',
+                  fontSize: '0.75rem'
+                }}>
+                  Loading...
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Commander Details - Mana Colors and Keywords under commander name */}
+          {player.commander && player.commanderData && (
+            <div style={{
+              marginTop: '0.5rem',
+              padding: '0.5rem',
+              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+              borderRadius: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.5rem'
+            }}>
+              {/* Mana Colors on the left */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                {player.commanderData.color_identity && player.commanderData.color_identity.length > 0 &&
+                  player.commanderData.color_identity.map((color, idx) => {
+                    const colorMap = {
+                      'W': { name: 'White', icon: whiteIcon },
+                      'U': { name: 'Blue', icon: blueIcon },
+                      'B': { name: 'Black', icon: blackIcon },
+                      'R': { name: 'Red', icon: redIcon },
+                      'G': { name: 'Green', icon: greenIcon }
+                    };
+                    const colorInfo = colorMap[color];
+
+                    return (
+                      <img
+                        key={idx}
+                        src={colorInfo?.icon}
+                        alt={colorInfo?.name || color}
+                        title={colorInfo?.name || color}
+                        style={{
+                          width: '1.5rem',
+                          height: '1.5rem',
+                          borderRadius: '50%',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    );
+                  })
+                }
+              </div>
+
+              {/* Keywords on the right */}
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.25rem',
+                justifyContent: 'flex-end'
+              }}>
+                {player.commanderData.keywords && player.commanderData.keywords.length > 0 &&
+                  player.commanderData.keywords.slice(0, 3).map((keyword, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        fontSize: '0.7rem',
+                        padding: '0.2rem 0.4rem',
+                        backgroundColor: darkMode ? '#4a5568' : '#e2e8f0',
+                        color: darkMode ? '#e2e8f0' : '#2d3748',
+                        borderRadius: '0.25rem',
+                        fontWeight: '600'
+                      }}
+                    >
+                      {keyword}
+                    </span>
+                  ))
+                }
+              </div>
+            </div>
+          )}
         </div>
       )}
+
 
       {/* Profile Options Dropdown */}
       {showOptions && !hasProfile && (
