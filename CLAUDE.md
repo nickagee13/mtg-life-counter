@@ -148,8 +148,8 @@ mtg-life-counter/
 
 ## Current Session Progress (September 21, 2025)
 
-### Session Overview: PlayerSlot Profile Integration & Database Constraint Fixes
-This session focused on implementing the "Use My Profile" feature in PlayerSlot components and resolving critical database constraint violations that were preventing game saves. All database issues have been resolved and the profile system is now fully operational.
+### Session Overview: Profile Deletion System Fix & Row Level Security Resolution
+This session focused on implementing the "Use My Profile" feature in PlayerSlot components and resolving critical profile deletion issues caused by Row Level Security policies and legacy profile data. All database issues have been resolved and the profile system is now fully operational with working deletion functionality.
 
 ### Major Achievements Completed
 
@@ -161,7 +161,34 @@ This session focused on implementing the "Use My Profile" feature in PlayerSlot 
   - Removes need to manually enter share codes for your own profile
   - Seamless integration with existing profile selection flow
 
-#### 🗄️ **Database Constraint Resolution**
+#### 🗑️ **Profile Deletion System Fix**
+- [x] **Nested Button HTML Structure Fix**
+  - Resolved invalid HTML structure where profile cards were `<button>` elements containing delete `<button>` elements
+  - Changed profile cards from `<button>` to `<div>` with `onClick` handlers
+  - Eliminated React JSX parsing errors and UI update issues
+  - Profile deletion function now properly triggers without HTML validation errors
+
+- [x] **Legacy Profile Data Compatibility**
+  - Created `fixLegacyProfile` function to update profiles created before ownership system
+  - Automatically updates old profiles with proper `device_id` and `device_profiles` relationships
+  - Handles profiles created with old `createProfile` vs new `createOwnedProfile` functions
+  - Ensures all profiles work with the device-based ownership system
+
+- [x] **Row Level Security (RLS) Policy Resolution**
+  - Identified and resolved Supabase RLS policies blocking profile deletion
+  - Created database migration `20250921_fix_profile_deletion_rls.sql`
+  - Implemented `delete_profile_with_device_context` database function with `SECURITY DEFINER`
+  - Added proper RLS delete policy: "Users can delete owned profiles"
+  - Database function sets proper device_id context and handles cascading deletion
+
+- [x] **Complete Deletion Workflow**
+  - Profile deletion now works correctly for both new and legacy profiles
+  - Automatic legacy profile fixing before deletion attempts
+  - Proper cleanup of `device_profiles` relationships
+  - Real-time UI updates after successful deletion
+  - Comprehensive error handling and debugging throughout the process
+
+#### 🗄️ **Database Constraint Resolution** (Previous Session Context)
 - [x] **Games Table Format Constraint Fix**
   - Identified duplicate save operations causing constraint violations
   - Old `games` table had conflicting format constraints preventing saves
@@ -584,8 +611,8 @@ The following enhancements are planned for future iterations of the profile syst
 
 ## Document Status
 **Last Updated**: September 21, 2025
-**Status**: ✅ Production Ready - All database issues resolved, profile system fully operational
-**Branch**: `main` - PlayerSlot integration complete, database constraints fixed
+**Status**: ✅ Production Ready - Complete profile system with working deletion functionality
+**Branch**: `main` - PlayerSlot integration, database fixes, and profile deletion system complete
 **Next Review**: When significant features are added or major changes occur
 
 ---

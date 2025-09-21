@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
-  User, Users, UserPlus, BarChart3, Settings, LogOut, Share2, X
+  User, Users, UserPlus, BarChart3, Settings, LogOut, Share2, X, Shield
 } from 'lucide-react';
 import ProfileSetup from './ProfileSetup';
 import ProfileStats from './ProfileStats';
 import ProfileQuickAdd from './ProfileQuickAdd';
+import ProfilePrivacySettings from './ProfilePrivacySettings';
 import {
   getAllProfiles,
   getProfile,
   deleteProfile
 } from '../../lib/profiles/profileService';
+import { deleteOwnedProfile, isProfileOwner, fixLegacyProfile } from '../../lib/profiles/profileOwnership';
 import {
   getMyProfileId,
   setMyProfileId,
@@ -19,7 +21,7 @@ import {
 import { formatShareCode } from '../../lib/profiles/codeGenerator';
 
 const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
-  const [view, setView] = useState('list'); // list, create, edit, stats, share
+  const [view, setView] = useState('list'); // list, create, edit, stats, share, privacy
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,7 +40,9 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
     setError(null);
 
     try {
+      console.log('📋 Loading profiles from database...');
       const data = await getAllProfiles();
+      console.log('📋 Loaded profiles:', data.length, data.map(p => p.username));
       setProfiles(data);
 
       // Auto-select last used profile
@@ -96,12 +100,35 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
       event.stopPropagation(); // Prevent profile selection when clicking delete
     }
 
-    if (!window.confirm('Are you sure you want to delete this profile? This action cannot be undone.')) {
-      return;
-    }
+    console.log('🗑️ Attempting to delete profile:', profileId);
 
     try {
-      await deleteProfile(profileId);
+      // Check if we own this profile
+      const isOwner = await isProfileOwner(profileId);
+      console.log('🔍 Ownership check result:', isOwner);
+
+      if (!isOwner) {
+        alert('You can only delete profiles you own');
+        return;
+      }
+
+      if (!window.confirm('Are you sure you want to delete this profile? This action cannot be undone.')) {
+        return;
+      }
+
+      console.log('🚀 Proceeding with deletion...');
+
+      // First, try to fix legacy profile if needed
+      try {
+        await fixLegacyProfile(profileId);
+        console.log('🔧 Legacy profile fixed, proceeding with deletion...');
+      } catch (fixError) {
+        console.log('⚠️ Could not fix legacy profile (might not be legacy):', fixError.message);
+      }
+
+      // Use the ownership-aware delete function
+      const deleteResult = await deleteOwnedProfile(profileId);
+      console.log('💾 Delete result:', deleteResult);
 
       if (profileId === myProfileId) {
         setMyProfileId(null);
@@ -112,10 +139,12 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
         setSelectedProfile(null);
       }
 
-      loadProfiles();
+      console.log('🔄 Refreshing profile list...');
+      await loadProfiles();
+      console.log('✅ Profile deletion process completed');
     } catch (err) {
-      console.error('Error deleting profile:', err);
-      alert('Failed to delete profile');
+      console.error('❌ Error deleting profile:', err);
+      alert(err.message || 'Failed to delete profile');
     }
   };
 
@@ -249,6 +278,20 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
                 title="View Stats"
               >
                 <BarChart3 size={18} />
+              </button>
+              <button
+                onClick={() => setView('privacy')}
+                style={{
+                  padding: '0.5rem',
+                  backgroundColor: darkMode ? '#4a5568' : '#e2e8f0',
+                  border: 'none',
+                  borderRadius: '0.25rem',
+                  cursor: 'pointer',
+                  color: darkMode ? '#e2e8f0' : '#2d3748'
+                }}
+                title="Privacy Settings"
+              >
+                <Shield size={18} />
               </button>
               <button
                 onClick={() => setView('edit')}
@@ -404,7 +447,7 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
             gap: '0.5rem'
           }}>
             {profiles.map(profile => (
-              <button
+              <div
                 key={profile.id}
                 onClick={() => handleSelectProfile(profile)}
                 style={{
@@ -487,7 +530,7 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
                     <X size={16} />
                   </button>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
@@ -504,6 +547,82 @@ const ProfileManager = ({ darkMode = true, onClose, onProfileChange }) => {
           darkMode={darkMode}
           onClose={() => setView('list')}
         />
+      ) : view === 'privacy' && selectedProfile ? (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: darkMode ? '#1a202c' : '#ffffff',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            maxWidth: '500px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Shield size={24} color="#8b5cf6" />
+                <div>
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: '1.25rem',
+                    fontWeight: 'bold',
+                    color: darkMode ? '#e2e8f0' : '#2d3748'
+                  }}>
+                    Privacy Settings
+                  </h3>
+                  <p style={{
+                    margin: 0,
+                    fontSize: '0.875rem',
+                    color: darkMode ? '#a0aec0' : '#718096'
+                  }}>
+                    {selectedProfile.display_name} (@{selectedProfile.username})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setView('list')}
+                style={{
+                  padding: '0.5rem',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: darkMode ? '#a0aec0' : '#718096',
+                  cursor: 'pointer',
+                  borderRadius: '0.25rem'
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <ProfilePrivacySettings
+              profile={selectedProfile}
+              darkMode={darkMode}
+              onUpdate={(updatedProfile) => {
+                setSelectedProfile(updatedProfile);
+                // Update in profiles list
+                setProfiles(prev => prev.map(p =>
+                  p.id === updatedProfile.id ? updatedProfile : p
+                ));
+              }}
+            />
+          </div>
+        </div>
       ) : (
         <div style={{
           position: 'fixed',

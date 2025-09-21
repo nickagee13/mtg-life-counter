@@ -7,6 +7,7 @@ import {
   isUsernameAvailable,
   updateProfile
 } from '../../lib/profiles/profileService';
+import { createOwnedProfile } from '../../lib/profiles/profileOwnership';
 import { formatShareCode } from '../../lib/profiles/codeGenerator';
 import { setMyProfileId } from '../../lib/profiles/localStorage';
 
@@ -112,8 +113,10 @@ const ProfileSetup = ({ profile = null, darkMode = true, onComplete, onCancel })
           color_identity: formData.color_identity || null
         });
       } else {
-        // Create new profile
-        result = await createProfile(formData);
+        // Create new profile with device ownership
+        result = await createOwnedProfile(formData, {
+          isPublic: false // Private by default
+        });
         setShareCode(result.share_code);
         setMyProfileId(result.id);
       }
