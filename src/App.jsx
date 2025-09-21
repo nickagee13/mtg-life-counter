@@ -242,8 +242,8 @@ const MTGCommanderTrackerInner = () => {
     });
   };
 
-  // Touch/swipe handling for commander damage
-  const handleTouchStart = (e, playerId) => {
+  // Touch/swipe handling for commander damage (only in dedicated zones)
+  const handleCommanderDamageTouch = (e, playerId) => {
     const touch = e.touches[0];
     setTouchStart({
       x: touch.clientX,
@@ -253,7 +253,7 @@ const MTGCommanderTrackerInner = () => {
     });
   };
 
-  const handleTouchMove = (e, playerId) => {
+  const handleCommanderDamageMove = (e, playerId) => {
     if (!touchStart) return;
 
     const touch = e.touches[0];
@@ -274,7 +274,7 @@ const MTGCommanderTrackerInner = () => {
     }
   };
 
-  const handleTouchEnd = (e, playerId) => {
+  const handleCommanderDamageEnd = (e, playerId) => {
     if (!touchStart) return;
 
     const touch = e.changedTouches[0];
@@ -292,6 +292,21 @@ const MTGCommanderTrackerInner = () => {
 
     setTouchStart(null);
     setIsSwipeInProgress(false);
+  };
+
+  // Touch handling for life total changes (separate from commander damage)
+  const handleLifeTotalTouch = (e, playerId, isRightSide) => {
+    // Prevent triggering during commander damage mode
+    if (commanderDamageMode) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Determine if it's a right-click (context menu) for bigger changes
+    const isBigChange = e.button === 2 || e.ctrlKey || e.metaKey;
+    const delta = isRightSide ? (isBigChange ? 5 : 1) : (isBigChange ? -5 : -1);
+
+    changeLife(playerId, delta);
   };
 
   // Commander damage functions
@@ -868,7 +883,8 @@ const endGame = async () => {
             <button
               onClick={() => setShowProfileManager(true)}
               style={{
-                padding: '0.5rem',
+                height: '3rem',
+                padding: '0 0.75rem',
                 borderRadius: '0.5rem',
                 backgroundColor: darkMode ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)',
                 border: `2px solid ${darkMode ? '#8b5cf6' : '#8b5cf6'}`,
@@ -889,15 +905,19 @@ const endGame = async () => {
             <button
               onClick={() => setDarkMode(!darkMode)}
               style={{
-                padding: '0.5rem',
+                width: '3rem',
+                height: '3rem',
                 borderRadius: '0.5rem',
                 backgroundColor: darkMode ? 'rgba(255, 193, 7, 0.2)' : 'rgba(45, 55, 72, 0.1)',
                 border: `2px solid ${darkMode ? '#ffc107' : '#2d3748'}`,
                 color: darkMode ? '#ffc107' : '#2d3748',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              {darkMode ? <Sun size={24} /> : <Moon size={24} />}
             </button>
           </div>
           
@@ -1567,15 +1587,19 @@ const endGame = async () => {
             <button
               onClick={() => setDarkMode(!darkMode)}
               style={{
-                padding: '0.5rem',
+                width: '3rem',
+                height: '3rem',
                 borderRadius: '0.5rem',
                 backgroundColor: darkMode ? 'rgba(255, 193, 7, 0.2)' : 'rgba(45, 55, 72, 0.1)',
                 border: `2px solid ${darkMode ? '#ffc107' : '#2d3748'}`,
                 color: darkMode ? '#ffc107' : '#2d3748',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              {darkMode ? <Sun size={24} /> : <Moon size={24} />}
             </button>
           </div>
           
@@ -1771,9 +1795,6 @@ const endGame = async () => {
                 <div
                   key={player.id}
                   className={selectedLayout === '2-horizontal' ? 'player-card' : ''}
-                  onTouchStart={(e) => handleTouchStart(e, player.id)}
-                  onTouchMove={(e) => handleTouchMove(e, player.id)}
-                  onTouchEnd={(e) => handleTouchEnd(e, player.id)}
                   style={{
                     ...getPlayerCardStyle(selectedLayout, players.length, index),
                     borderRadius: '1rem',
@@ -1794,6 +1815,49 @@ const endGame = async () => {
                     transition: 'border 0.3s ease, box-shadow 0.3s ease'
                   }}
                 >
+                  {/* Life Total Touch Zones - Left half (decrease) and Right half (increase) */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '50%',
+                      height: '100%',
+                      zIndex: 1
+                    }}
+                    onMouseDown={(e) => handleLifeTotalTouch(e, player.id, false)}
+                    onTouchStart={(e) => handleLifeTotalTouch(e, player.id, false)}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      width: '50%',
+                      height: '100%',
+                      zIndex: 1
+                    }}
+                    onMouseDown={(e) => handleLifeTotalTouch(e, player.id, true)}
+                    onTouchStart={(e) => handleLifeTotalTouch(e, player.id, true)}
+                  />
+
+                  {/* Commander Damage Swipe Zone - positioned next to timer */}
+                  {isActive && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '1rem',
+                        left: '1rem', // Fixed to left edge of player card
+                        right: '140px', // Fixed to just left of timer (110px wide + 30px gap)
+                        height: '70px',
+                        zIndex: 5,
+                        borderRadius: '0.5rem'
+                      }}
+                      onTouchStart={(e) => handleCommanderDamageTouch(e, player.id)}
+                      onTouchMove={(e) => handleCommanderDamageMove(e, player.id)}
+                      onTouchEnd={(e) => handleCommanderDamageEnd(e, player.id)}
+                    />
+                  )}
                   {/* Grey overlay for eliminated players (0 life) */}
                   {player.life <= 0 && (
                     <div style={{
